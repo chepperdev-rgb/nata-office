@@ -135,7 +135,7 @@ export default function AgentPopup({ agent, onClose }: AgentPopupProps) {
               <div>
                 <StatRow label="Model" value={isOpus ? 'Claude Opus 4' : 'Claude Sonnet 4'} highlight={isOpus} />
                 <StatRow label="Agent ID" value={`@${agent.id}`} />
-                <StatRow label="Room" value={agent.room.toUpperCase()} />
+                <StatRow label="Room" value={agent.room?.toUpperCase() ?? '—'} />
                 {agent.last_active && (
                   <StatRow label="Last active" value={new Date(agent.last_active).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
                 )}

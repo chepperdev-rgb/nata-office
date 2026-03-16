@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import AgentDesk from '@/components/agent/AgentDesk'
+import GlitchText from '@/components/ui/GlitchText'
 import type { Agent, Room } from '@/types'
 
 // Room icons — clean SVG, no emoji
@@ -47,6 +49,16 @@ function RoomIcon({ roomId, color }: { roomId: string; color: string }) {
         <line x1="9.5" y1="9.5" x2="14" y2="14" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
     ),
+    design: (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <ellipse cx="8" cy="9" rx="6" ry="5" stroke={c} strokeWidth="1.5"/>
+        <circle cx="5" cy="8" r="1.2" fill={c}/>
+        <circle cx="8" cy="6" r="1.2" fill={c} opacity="0.8"/>
+        <circle cx="11" cy="8" r="1.2" fill={c} opacity="0.6"/>
+        <circle cx="6" cy="11" r="1.2" fill={c} opacity="0.7"/>
+        <circle cx="10" cy="11" r="1.2" fill={c} opacity="0.5"/>
+      </svg>
+    ),
   }
   return <>{icons[roomId] ?? icons.dev}</>
 }
@@ -58,6 +70,7 @@ const ROOM_BOSS: Record<string, string> = {
   ops: 'devops',
   social: 'content',
   research: 'artem',
+  design: 'viktor',
 }
 
 interface RoomCardProps {
@@ -69,31 +82,61 @@ interface RoomCardProps {
 export default function RoomCard({ room, agents, onAgentClick }: RoomCardProps) {
   const activeCount = agents.filter(a => a.status === 'working').length
   const bossId = ROOM_BOSS[room.id]
+  const [hovered, setHovered] = useState(false)
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative overflow-hidden group"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#0d0d0d',
+        background: 'rgba(13, 13, 13, 0.8)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         borderRadius: '14px',
         border: '1px solid rgba(255,255,255,0.06)',
+        transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
+        borderColor: hovered ? `${room.color}30` : 'rgba(255,255,255,0.06)',
+        boxShadow: hovered ? `0 0 30px ${room.color}10, inset 0 1px 0 rgba(255,255,255,0.06)` : 'inset 0 1px 0 rgba(255,255,255,0.04)',
       }}
     >
-      {/* Top accent */}
+      {/* Animated gradient border on hover */}
+      <div
+        className="absolute -inset-[1px] rounded-[14px] pointer-events-none transition-opacity duration-500"
+        style={{
+          background: `conic-gradient(from var(--border-angle, 0deg), transparent 30%, ${room.color}40 50%, transparent 70%)`,
+          opacity: hovered ? 1 : 0,
+          animation: 'spin-border 4s linear infinite',
+          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          maskComposite: 'exclude',
+          WebkitMaskComposite: 'xor',
+          padding: '1px',
+        }}
+      />
+
+      {/* Top accent line */}
       <div
         className="absolute top-0 left-0 right-0 h-[1px]"
         style={{ background: `linear-gradient(90deg, transparent, ${room.color}70, transparent)` }}
       />
 
+      {/* Noise texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03] rounded-[14px]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Dot pattern */}
+      <div className="absolute inset-0 pointer-events-none dot-grid opacity-40 rounded-[14px]" />
+
       {/* Header */}
-      <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+      <div className="px-4 pt-4 pb-2 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2">
           <RoomIcon roomId={room.id} color={room.color} />
-          <h3
-            className="text-[10px] font-semibold tracking-[0.12em] uppercase"
-            style={{ color: 'rgba(255,255,255,0.55)' }}
-          >
-            {room.name}
+          <h3 className="text-[10px] font-semibold tracking-[0.12em] uppercase">
+            <GlitchText text={room.name} color={room.color} className="text-[10px] font-semibold" />
           </h3>
         </div>
         <div
@@ -124,8 +167,12 @@ export default function RoomCard({ room, agents, onAgentClick }: RoomCardProps) 
       >
         {/* Floor accent glow */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
-          style={{ background: `linear-gradient(0deg, ${room.color}08, transparent)` }}
+          className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+          style={{
+            background: `linear-gradient(0deg, ${room.color}12, transparent)`,
+            transition: 'opacity 0.4s',
+            opacity: hovered ? 1 : 0.5,
+          }}
         />
 
         <div className="flex gap-3 justify-center flex-wrap relative z-10">

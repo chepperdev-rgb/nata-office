@@ -8,6 +8,7 @@ export const ROOMS = [
   { id: 'ops', name: 'OPS ROOM', color: '#f59e0b', bg: '#1c1200', emoji: '⚙️' },
   { id: 'social', name: 'SOCIAL MEDIA', color: '#ec4899', bg: '#1e0a18', emoji: '📱' },
   { id: 'research', name: 'RESEARCH', color: '#8b5cf6', bg: '#150a2e', emoji: '🔬' },
+  { id: 'design', name: 'DESIGN STUDIO', color: '#f97316', bg: '#1a0e00', emoji: '🎨' },
 ]
 
 export const STATIC_AGENTS = [
@@ -26,4 +27,15 @@ export const STATIC_AGENTS = [
   { id: 'ig-oracle', name: 'IG Oracle', role: 'Instagram Expert', model: 'sonnet', room: 'social', emoji: '📱' },
   { id: 'artem', name: 'Артем', role: 'Research Agent', model: 'opus', room: 'research', emoji: '🔬' },
   { id: 'pm', name: 'PM', role: 'Project Manager', model: 'sonnet', room: 'research', emoji: '📋' },
+  // DESIGN STUDIO
+  { id: 'viktor', name: 'Віктор', role: 'Creative Director', model: 'opus', room: 'design', emoji: '👁️', status: 'idle' },
+  { id: 'pixel', name: 'Піксель', role: 'UI/UX Designer', model: 'sonnet', room: 'design', emoji: '🖥️', status: 'idle' },
+  { id: 'marka', name: 'Марка', role: 'Visual Identity Designer', model: 'sonnet', room: 'design', emoji: '💎', status: 'idle' },
+  { id: 'sait', name: 'Сайт', role: 'Web Designer', model: 'sonnet', room: 'design', emoji: '🌐', status: 'idle' },
+  { id: 'ruh', name: 'Рух', role: 'Motion Designer', model: 'sonnet', room: 'design', emoji: '✨', status: 'idle' },
+  { id: 'prostir', name: 'Простір', role: '3D Designer', model: 'sonnet', room: 'design', emoji: '🧊', status: 'idle' },
+  { id: 'systema', name: 'Система', role: 'Design Systems Lead', model: 'sonnet', room: 'design', emoji: '🧬', status: 'idle' },
+  { id: 'koddesign', name: 'Код', role: 'Design Engineer', model: 'sonnet', room: 'design', emoji: '⚡', status: 'idle' },
+  { id: 'kontenta', name: 'Контента', role: 'Content Designer', model: 'sonnet', room: 'design', emoji: '📐', status: 'idle' },
+  { id: 'doslidnyk', name: 'Дослідник', role: 'UX Researcher', model: 'sonnet', room: 'design', emoji: '🔎', status: 'idle' },
 ]

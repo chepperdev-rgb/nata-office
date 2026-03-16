@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { STATIC_AGENTS } from '@/lib/constants'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +15,6 @@ export async function GET() {
 
   // Map DB columns (agent_id, display_name) to frontend Agent type (id, name)
   // Also merge with STATIC_AGENTS to recover emoji field (not stored in DB)
-  const { STATIC_AGENTS } = await import('@/lib/constants')
   const staticMap = new Map(STATIC_AGENTS.map(a => [a.id, a]))
 
   const agents = (data || []).map(row => {

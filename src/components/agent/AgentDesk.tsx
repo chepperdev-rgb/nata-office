@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import PixelChar from './PixelChar'
 import type { Agent } from '@/types'
 
@@ -11,11 +12,22 @@ interface AgentDeskProps {
 }
 
 // B&W SVG icons (no emoji)
-function IconMonitor({ color }: { color: string }) {
+function IconMonitor({ color, working }: { color: string; working: boolean }) {
   return (
     <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
       <rect x="0.5" y="0.5" width="17" height="11" rx="1.5" fill="#0d0d0d" stroke={color} strokeWidth="1"/>
-      <rect x="3" y="2" width="12" height="7" rx="0.5" fill={color} fillOpacity="0.15"/>
+      <rect x="3" y="2" width="12" height="7" rx="0.5" fill={color} fillOpacity={working ? 0.25 : 0.1}>
+        {working && (
+          <animate attributeName="fill-opacity" values="0.15;0.3;0.15" dur="2s" repeatCount="indefinite" />
+        )}
+      </rect>
+      {/* Screen scanlines when working */}
+      {working && (
+        <>
+          <line x1="3" y1="4" x2="15" y2="4" stroke={color} strokeOpacity="0.15" strokeWidth="0.5"/>
+          <line x1="3" y1="6" x2="15" y2="6" stroke={color} strokeOpacity="0.1" strokeWidth="0.5"/>
+        </>
+      )}
       <rect x="7" y="11" width="4" height="2" fill={color} fillOpacity="0.5"/>
       <rect x="5" y="13" width="8" height="1" fill={color} fillOpacity="0.4"/>
     </svg>
@@ -31,16 +43,58 @@ function IconCrown() {
   )
 }
 
+// Thinking bubble dots for idle agents
+function ThinkingBubble() {
+  return (
+    <div className="flex items-center gap-[2px] h-3">
+      {[0, 1, 2].map(i => (
+        <div
+          key={i}
+          className="w-[3px] h-[3px] rounded-full"
+          style={{
+            background: 'rgba(255,255,255,0.25)',
+            animation: `thinking-dot 1.4s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 export default function AgentDesk({ agent, roomColor, isBoss, onClick }: AgentDeskProps) {
   const isWorking = agent.status === 'working'
   const screenColor = isWorking ? roomColor : '#333'
+  const [showTooltip, setShowTooltip] = useState(false)
 
   return (
     <div
-      className="flex flex-col items-center gap-0 cursor-pointer group select-none"
+      className="flex flex-col items-center gap-0 cursor-pointer group select-none relative"
       onClick={e => onClick(e)}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
       style={{ minWidth: '68px' }}
     >
+      {/* Tooltip */}
+      {showTooltip && (
+        <div
+          className="absolute -top-[72px] left-1/2 -translate-x-1/2 px-3 py-2 rounded-lg text-[9px] text-white/90 whitespace-nowrap z-[100]"
+          style={{
+            background: '#1a1a1a',
+            border: '1px solid rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(8px)',
+            boxShadow: `0 4px 16px rgba(0,0,0,0.5), 0 0 12px ${roomColor}10`,
+          }}
+        >
+          <div className="font-semibold text-[10px]" style={{ color: roomColor }}>{agent.name ?? agent.id}</div>
+          <div className="text-white/50 mt-0.5">{agent.role}</div>
+          <div className="text-white/40 mt-0.5">{agent.current_task || 'Idle'} &middot; {agent.model}</div>
+          <div
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45"
+            style={{ background: '#1a1a1a', borderRight: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+          />
+        </div>
+      )}
+
       {/* Boss badge */}
       <div className="h-4 flex items-center justify-center mb-0.5">
         {isBoss && <IconCrown />}
@@ -48,15 +102,19 @@ export default function AgentDesk({ agent, roomColor, isBoss, onClick }: AgentDe
 
       {/* Name above */}
       <div className="text-[9px] font-semibold text-white/60 text-center leading-tight mb-1 whitespace-nowrap tracking-wide">
-        {agent.name.split(' ')[0].toUpperCase()}
+        {(agent.name ?? agent.id)?.split(' ')[0]?.toUpperCase()}
       </div>
 
       {/* Character */}
       <div
-        className="transition-transform group-hover:scale-110"
-        style={{ filter: isWorking ? `drop-shadow(0 0 4px ${roomColor}60)` : undefined }}
+        className="transition-transform duration-200 group-hover:scale-110"
+        style={{
+          filter: isWorking
+            ? `drop-shadow(0 0 6px ${roomColor}80)`
+            : undefined,
+        }}
       >
-        <PixelChar working={isWorking} accentColor={roomColor} isBoss={isBoss} />
+        <PixelChar working={isWorking} accentColor={roomColor} isBoss={isBoss} agentId={agent.id} />
       </div>
 
       {/* Desk */}
@@ -68,11 +126,13 @@ export default function AgentDesk({ agent, roomColor, isBoss, onClick }: AgentDe
           background: '#141414',
           border: `1px solid ${isWorking ? roomColor + '40' : 'rgba(255,255,255,0.07)'}`,
           marginTop: '-2px',
+          transition: 'border-color 0.3s, box-shadow 0.3s',
+          boxShadow: isWorking ? `0 0 12px ${roomColor}15` : 'none',
         }}
       >
         {/* Monitor on desk */}
-        <div style={{ animation: isWorking ? 'screen-flicker 2s infinite' : undefined }}>
-          <IconMonitor color={screenColor} />
+        <div>
+          <IconMonitor color={screenColor} working={isWorking} />
         </div>
 
         {/* Working glow on desk surface */}
@@ -80,16 +140,22 @@ export default function AgentDesk({ agent, roomColor, isBoss, onClick }: AgentDe
           <div
             className="absolute inset-0 rounded"
             style={{
-              background: `radial-gradient(ellipse at center, ${roomColor}12 0%, transparent 70%)`,
+              background: `radial-gradient(ellipse at center, ${roomColor}18 0%, transparent 70%)`,
               animation: 'work-glow 2s ease-in-out infinite',
             }}
           />
         )}
       </div>
 
-      {/* Role text */}
-      <div className="text-[8px] text-white/25 text-center mt-1 leading-tight" style={{ maxWidth: '64px' }}>
-        {agent.role}
+      {/* Role text or thinking bubble */}
+      <div className="flex items-center justify-center mt-1 h-3" style={{ maxWidth: '64px' }}>
+        {!isWorking ? (
+          <ThinkingBubble />
+        ) : (
+          <div className="text-[8px] text-white/25 text-center leading-tight truncate" style={{ maxWidth: '64px' }}>
+            {agent.role}
+          </div>
+        )}
       </div>
 
       {/* Status dot */}

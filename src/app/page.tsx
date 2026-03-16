@@ -15,7 +15,9 @@ export default function Home() {
   const { agents } = useAgents()
 
   return (
-    <div className="min-h-screen" style={{ background: '#080808' }}>
+    <div className="min-h-screen relative" style={{ background: '#080808' }}>
+      {/* CRT scanlines overlay */}
+      <div className="crt-overlay" />
       <Header
         onToggleDashboard={() => setDashboardOpen(prev => !prev)}
         dashboardOpen={dashboardOpen}

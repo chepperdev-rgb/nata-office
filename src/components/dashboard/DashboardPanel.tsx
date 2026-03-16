@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMetrics } from '@/hooks/useMetrics'
 import { useServices } from '@/hooks/useServices'
 import { useActivity } from '@/hooks/useActivity'
 import { useAgents } from '@/hooks/useAgents'
 import { useNataliStatus } from '@/hooks/useNataliStatus'
+import { useProcesses } from '@/hooks/useProcesses'
 import { STATIC_AGENTS } from '@/lib/constants'
+import TerminalPanel from './TerminalPanel'
 
 interface DashboardPanelProps {
   open: boolean
@@ -33,6 +35,7 @@ function formatUptime(seconds: number): string {
 }
 
 function timeAgo(dateStr: string): string {
+  if (!dateStr) return '—'
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
   if (diff < 60) return `${diff}s ago`
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
@@ -58,8 +61,11 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const { activity } = useActivity()
   const { agents } = useAgents()
   const { natali } = useNataliStatus()
+  const { lines: processLines } = useProcesses()
+  const terminalRef = useRef<HTMLDivElement>(null)
   const [lastPing, setLastPing] = useState('')
   const [restarting, setRestarting] = useState(false)
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'terminal'>('dashboard')
 
   const workingAgents = agents.filter(a => a.status === 'working')
   const workingCount = workingAgents.length
@@ -74,17 +80,28 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
     return () => clearInterval(interval)
   }, [metrics?.updated_at])
 
-  const handleRestart = async (service: string) => {
+  // Auto-scroll terminal to bottom
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight
+    }
+  }, [processLines])
+
+  const sendCommand = async (command: string) => {
     setRestarting(true)
     try {
-      await fetch('/api/restart', {
+      await fetch('/api/command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer nataly-restart-2026' },
-        body: JSON.stringify({ service }),
+        body: JSON.stringify({ command }),
       })
     } finally {
-      setTimeout(() => setRestarting(false), 3000)
+      setTimeout(() => setRestarting(false), 4000)
     }
+  }
+
+  const handleRestart = async (service: string) => {
+    await sendCommand(`restart_${service}`)
   }
 
   const isCollectorOffline = metrics?.updated_at
@@ -108,18 +125,43 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed top-14 right-0 bottom-0 w-[340px] z-50 overflow-y-auto"
+          className="fixed top-14 right-0 bottom-0 w-[380px] z-50 flex flex-col"
           style={{
-            background: 'rgba(17, 17, 17, 0.95)',
+            background: 'rgba(17, 17, 17, 0.97)',
             backdropFilter: 'blur(20px)',
             borderLeft: '1px solid rgba(255,255,255,0.08)',
           }}
-          initial={{ x: 340 }}
+          initial={{ x: 380 }}
           animate={{ x: 0 }}
-          exit={{ x: 340 }}
+          exit={{ x: 380 }}
           transition={{ type: 'spring', damping: 30, stiffness: 400 }}
         >
-          <div className="p-5 space-y-4">
+          {/* Tab switcher */}
+          <div className="flex border-b border-white/08 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            {(['dashboard', 'terminal'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 text-xs font-semibold tracking-widest uppercase transition-all ${activeTab === tab ? 'text-green-400 border-b-2 border-green-400' : 'text-white/30 hover:text-white/60'}`}
+              >
+                {tab === 'terminal' ? '⚡ Terminal' : '⬡ Dashboard'}
+              </button>
+            ))}
+            <button
+              onClick={onClose}
+              className="px-4 text-white/30 hover:text-white/60 hover:bg-white/05 transition-all text-lg"
+            >×</button>
+          </div>
+
+          {/* Terminal Tab */}
+          {activeTab === 'terminal' && (
+            <div className="flex-1 overflow-hidden">
+              <TerminalPanel open={open && activeTab === 'terminal'} />
+            </div>
+          )}
+
+          {/* Dashboard Tab */}
+          {activeTab === 'dashboard' && <div className="flex-1 overflow-y-auto p-5 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white/80">Dashboard</h2>
@@ -217,6 +259,36 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                       }}
                     >
                       {restarting ? '...' : '⟳ Userbot'}
+                    </button>
+                  </div>
+
+                  {/* Extra control buttons */}
+                  <div className="flex gap-2 mt-1">
+                    <button
+                      onClick={() => sendCommand('run_collector')}
+                      disabled={restarting}
+                      className="flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all"
+                      style={{
+                        background: restarting ? 'rgba(255,255,255,0.04)' : 'rgba(99,102,241,0.1)',
+                        border: '1px solid rgba(99,102,241,0.2)',
+                        color: restarting ? '#555' : '#818cf8',
+                        cursor: restarting ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {restarting ? '...' : '⟳ Sync Metrics'}
+                    </button>
+                    <button
+                      onClick={() => sendCommand('clear_cache')}
+                      disabled={restarting}
+                      className="flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all"
+                      style={{
+                        background: restarting ? 'rgba(255,255,255,0.04)' : 'rgba(6,182,212,0.08)',
+                        border: '1px solid rgba(6,182,212,0.15)',
+                        color: restarting ? '#555' : '#22d3ee',
+                        cursor: restarting ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {restarting ? '...' : '🗑 Clear Cache'}
                     </button>
                   </div>
                 </div>
@@ -328,6 +400,69 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
               )}
             </div>
 
+            {/* Live Terminal */}
+            <div
+              className="rounded-xl overflow-hidden"
+              style={{
+                background: '#0a0a0a',
+                border: '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <div
+                className="flex items-center gap-2 px-4 py-2"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background: '#4ade80',
+                    boxShadow: '0 0 6px #4ade80',
+                    animation: 'pulse-dot 2s infinite',
+                  }}
+                />
+                <span
+                  className="text-[10px] font-semibold tracking-[0.12em] uppercase"
+                  style={{ color: '#4ade80' }}
+                >
+                  LIVE
+                </span>
+                <span
+                  className="text-[10px] font-medium tracking-[0.1em] uppercase"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                >
+                  PROCESSES
+                </span>
+              </div>
+              <div
+                ref={terminalRef}
+                className="px-3 py-2 space-y-0.5 overflow-y-auto"
+                style={{
+                  height: '120px',
+                  fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                }}
+              >
+                {processLines.map((line) => (
+                  <div
+                    key={line.id}
+                    className="text-[10px] leading-relaxed whitespace-nowrap"
+                    style={{ color: '#4ade80' }}
+                  >
+                    <span style={{ color: '#4ade8080' }}>[{line.time}]</span>{' '}
+                    <span style={{ color: '#4ade80' }}>{line.agent.padEnd(12)}</span>{' '}
+                    <span style={{ color: '#4ade8060' }}>
+                      {line.action.startsWith('running') || line.action.includes('passed') || line.action.includes('completed') ? '\u2713' : '\u2192'}
+                    </span>{' '}
+                    <span style={{ color: '#4ade80cc' }}>{line.action}</span>
+                  </div>
+                ))}
+                {processLines.length === 0 && (
+                  <div className="text-[10px]" style={{ color: '#4ade8040' }}>
+                    waiting for data...
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Services */}
             <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <h3 className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-2.5">Services</h3>
@@ -377,6 +512,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
               </div>
             </div>
           </div>
+          }
         </motion.div>
       )}
     </AnimatePresence>
