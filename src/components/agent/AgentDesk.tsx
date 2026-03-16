@@ -1,73 +1,111 @@
 'use client'
 
+import PixelChar from './PixelChar'
 import type { Agent } from '@/types'
 
 interface AgentDeskProps {
   agent: Agent
-  onClick: () => void
+  roomColor: string
+  isBoss?: boolean
+  onClick: (e?: React.MouseEvent) => void
 }
 
-export default function AgentDesk({ agent, onClick }: AgentDeskProps) {
-  const status = agent.status || 'idle'
-  const isWorking = status === 'working'
+// B&W SVG icons (no emoji)
+function IconMonitor({ color }: { color: string }) {
+  return (
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+      <rect x="0.5" y="0.5" width="17" height="11" rx="1.5" fill="#0d0d0d" stroke={color} strokeWidth="1"/>
+      <rect x="3" y="2" width="12" height="7" rx="0.5" fill={color} fillOpacity="0.15"/>
+      <rect x="7" y="11" width="4" height="2" fill={color} fillOpacity="0.5"/>
+      <rect x="5" y="13" width="8" height="1" fill={color} fillOpacity="0.4"/>
+    </svg>
+  )
+}
+
+function IconCrown() {
+  return (
+    <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+      <path d="M1 9L2.5 3L5.5 6L7 1L8.5 6L11.5 3L13 9H1Z" fill="#facc15" fillOpacity="0.9"/>
+      <rect x="1" y="8.5" width="12" height="1.5" fill="#facc15" fillOpacity="0.6"/>
+    </svg>
+  )
+}
+
+export default function AgentDesk({ agent, roomColor, isBoss, onClick }: AgentDeskProps) {
+  const isWorking = agent.status === 'working'
+  const screenColor = isWorking ? roomColor : '#333'
 
   return (
-    <div className="relative w-40 h-52 cursor-pointer group" onClick={onClick}>
-      {/* Status badge */}
-      <div className={`absolute -top-1 left-1/2 -translate-x-1/2 text-xs font-bold px-2 py-0.5 rounded whitespace-nowrap z-10 ${
-        isWorking ? 'bg-green-500 text-white' : 'bg-gray-600 text-gray-300'
-      }`}
-        style={{ animation: isWorking ? 'pulse-green 2s infinite' : undefined }}>
-        {isWorking ? '⚡ ПРАЦЮЄ' : '💤 БАЙДИКУЄ'}
+    <div
+      className="flex flex-col items-center gap-0 cursor-pointer group select-none"
+      onClick={e => onClick(e)}
+      style={{ minWidth: '68px' }}
+    >
+      {/* Boss badge */}
+      <div className="h-4 flex items-center justify-center mb-0.5">
+        {isBoss && <IconCrown />}
       </div>
 
-      {/* Name tag */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 text-xs font-bold bg-gray-900/80 px-2 py-0.5 rounded whitespace-nowrap z-10">
-        {agent.name}
+      {/* Name above */}
+      <div className="text-[9px] font-semibold text-white/60 text-center leading-tight mb-1 whitespace-nowrap tracking-wide">
+        {agent.name.split(' ')[0].toUpperCase()}
       </div>
-
-      {/* Monitor */}
-      <div className="absolute top-14 left-1/2 -translate-x-1/2 w-24 h-16 bg-gray-800 border-4 border-gray-600 rounded"
-        style={{ imageRendering: 'pixelated' }}>
-        <div className={`w-full h-full rounded flex items-center justify-center text-2xl ${
-          isWorking ? 'bg-green-900/80' : 'bg-gray-900'
-        }`}
-          style={{ animation: isWorking ? 'typing 1.5s infinite' : undefined }}>
-          {isWorking ? '💻' : '😴'}
-        </div>
-      </div>
-      {/* Monitor stand */}
-      <div className="absolute top-[7.5rem] left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-600" />
 
       {/* Character */}
-      <div className="absolute bottom-14 left-1/2 -translate-x-1/2"
-        style={{ animation: isWorking ? 'working 1.5s ease-in-out infinite' : 'idle 3s ease-in-out infinite' }}>
-        {/* Head */}
-        <div className="w-10 h-10 bg-amber-400 border-2 border-amber-600 rounded flex items-center justify-center text-lg"
-          style={{ animation: 'blink 4s infinite' }}>
-          {agent.emoji}
-        </div>
-        {/* Body */}
-        <div className={`w-8 h-6 border-2 rounded mx-auto mt-0.5 ${
-          isWorking ? 'bg-blue-600 border-blue-800' : 'bg-gray-600 border-gray-700'
-        }`} />
-        {/* Legs */}
-        <div className="flex justify-center gap-1 mt-0.5">
-          <div className="w-3 h-3 bg-gray-800 border border-gray-900 rounded-sm" />
-          <div className="w-3 h-3 bg-gray-800 border border-gray-900 rounded-sm" />
-        </div>
+      <div
+        className="transition-transform group-hover:scale-110"
+        style={{ filter: isWorking ? `drop-shadow(0 0 4px ${roomColor}60)` : undefined }}
+      >
+        <PixelChar working={isWorking} accentColor={roomColor} isBoss={isBoss} />
       </div>
 
-      {/* Desk surface */}
-      <div className="absolute bottom-8 left-0 right-0 h-5 bg-amber-800 border-t-4 border-amber-600"
-        style={{ imageRendering: 'pixelated' }} />
-      {/* Desk legs */}
-      <div className="absolute bottom-0 left-3 w-3 h-8 bg-amber-900" />
-      <div className="absolute bottom-0 right-3 w-3 h-8 bg-amber-900" />
+      {/* Desk */}
+      <div
+        className="relative flex items-center justify-center rounded"
+        style={{
+          width: '58px',
+          height: '22px',
+          background: '#141414',
+          border: `1px solid ${isWorking ? roomColor + '40' : 'rgba(255,255,255,0.07)'}`,
+          marginTop: '-2px',
+        }}
+      >
+        {/* Monitor on desk */}
+        <div style={{ animation: isWorking ? 'screen-flicker 2s infinite' : undefined }}>
+          <IconMonitor color={screenColor} />
+        </div>
 
-      {/* Hover glow */}
-      <div className="absolute inset-0 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-        style={{ boxShadow: '0 0 20px rgba(255,255,255,0.1)' }} />
+        {/* Working glow on desk surface */}
+        {isWorking && (
+          <div
+            className="absolute inset-0 rounded"
+            style={{
+              background: `radial-gradient(ellipse at center, ${roomColor}12 0%, transparent 70%)`,
+              animation: 'work-glow 2s ease-in-out infinite',
+            }}
+          />
+        )}
+      </div>
+
+      {/* Role text */}
+      <div className="text-[8px] text-white/25 text-center mt-1 leading-tight" style={{ maxWidth: '64px' }}>
+        {agent.role}
+      </div>
+
+      {/* Status dot */}
+      <div className="mt-1 flex items-center gap-1">
+        <div
+          className="w-1.5 h-1.5 rounded-full"
+          style={{
+            background: isWorking ? '#4ade80' : '#2a2a2a',
+            border: `1px solid ${isWorking ? '#4ade8040' : '#333'}`,
+            animation: isWorking ? 'pulse-dot 2s infinite' : undefined,
+          }}
+        />
+        <span className="text-[8px]" style={{ color: isWorking ? '#4ade8080' : '#333' }}>
+          {isWorking ? 'ON' : 'OFF'}
+        </span>
+      </div>
     </div>
   )
 }

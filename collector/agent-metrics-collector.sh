@@ -25,7 +25,8 @@ RAM_USED=$(echo "$RAM_INFO" | awk '{print $1}')
 RAM_TOTAL=$(echo "$RAM_INFO" | awk '{print $2}')
 RAM_PERCENT=$(echo "$RAM_USED $RAM_TOTAL" | awk '{printf "%.1f", ($1/$2)*100}')
 DISK_PERCENT=$(df -H / | awk 'NR==2 {gsub(/%/,"",$5); print $5}')
-UPTIME_SECONDS=$(sysctl -n kern.boottime | awk -F'[= ,]' '{print systime()-$6}')
+BOOT_TIME=$(/usr/sbin/sysctl -n kern.boottime | sed 's/.*sec = \([0-9]*\).*/\1/')
+UPTIME_SECONDS=$(( $(date +%s) - BOOT_TIME ))
 
 # Check agent processes
 AGENTS_JSON="["
@@ -67,7 +68,10 @@ if pgrep -f "openclaw-gateway" > /dev/null 2>&1; then
   GATEWAY_STATUS="running"
 fi
 
-SERVICES_JSON="[{\"service_id\":\"userbot\",\"status\":\"${USERBOT_STATUS}\"},{\"service_id\":\"gateway\",\"status\":\"${GATEWAY_STATUS}\"}]"
+# Count Claude processes (active AI agents)
+CLAUDE_PROCESSES=$(pgrep -c -f "claude" 2>/dev/null || echo "0")
+
+SERVICES_JSON="[{\"service_id\":\"userbot\",\"status\":\"${USERBOT_STATUS}\"},{\"service_id\":\"gateway\",\"status\":\"${GATEWAY_STATUS}\",\"details\":{\"claude_processes\":${CLAUDE_PROCESSES}}}]"
 
 # Build payload
 PAYLOAD=$(cat <<EOF

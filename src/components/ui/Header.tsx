@@ -5,9 +5,11 @@ import { useState, useEffect } from 'react'
 interface HeaderProps {
   onToggleDashboard: () => void
   dashboardOpen: boolean
+  workingCount: number
+  totalCount: number
 }
 
-export default function Header({ onToggleDashboard, dashboardOpen }: HeaderProps) {
+export default function Header({ onToggleDashboard, dashboardOpen, workingCount, totalCount }: HeaderProps) {
   const [time, setTime] = useState('')
 
   useEffect(() => {
@@ -20,25 +22,50 @@ export default function Header({ onToggleDashboard, dashboardOpen }: HeaderProps
   }, [])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-gray-900 border-b-4 border-gray-700 flex items-center justify-between px-6"
-      style={{ imageRendering: 'pixelated' }}>
+    <header
+      className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-6"
+      style={{
+        background: 'rgba(10, 10, 10, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
       <div className="flex items-center gap-3">
-        <span className="text-2xl">🏢</span>
-        <h1 className="text-xl font-bold tracking-wider" style={{ fontFamily: 'monospace' }}>
-          NATALY OFFICE
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+          style={{ background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)' }}
+        >
+          N
+        </div>
+        <h1 className="text-sm font-semibold tracking-wide text-white/90">
+          Nataly Office
         </h1>
+        <div className="hidden sm:flex items-center gap-1.5 ml-4 px-2.5 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: workingCount > 0 ? '#4ade80' : '#555',
+              animation: workingCount > 0 ? 'pulse-dot 2s infinite' : undefined,
+            }}
+          />
+          <span className="text-xs text-white/60">
+            {workingCount}/{totalCount} active
+          </span>
+        </div>
       </div>
-      <div className="flex items-center gap-4">
-        <span className="text-lg font-mono text-green-400">{time}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-white/40 font-mono hidden sm:block">{time}</span>
         <button
           onClick={onToggleDashboard}
-          className={`px-4 py-1.5 font-bold text-sm tracking-wider border-2 transition-colors ${
-            dashboardOpen
-              ? 'bg-yellow-500 border-yellow-400 text-black'
-              : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
-          }`}
+          className="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all"
+          style={{
+            background: dashboardOpen ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: dashboardOpen ? '#fff' : 'rgba(255,255,255,0.6)',
+          }}
         >
-          DASHBOARD
+          Dashboard
         </button>
       </div>
     </header>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { STATIC_AGENTS } from '@/lib/constants'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,10 +43,11 @@ export async function POST(request: Request) {
   const body: CollectorPayload = await request.json()
   const now = new Date().toISOString()
 
+  // Delete all existing rows then insert fresh metrics
+  await supabase.from('office_system_metrics').delete().neq('updated_at', '')
   const { error: metricsError } = await supabase
     .from('office_system_metrics')
-    .upsert({
-      id: 1,
+    .insert({
       ...body.system,
       updated_at: now,
     })
@@ -55,13 +57,19 @@ export async function POST(request: Request) {
   }
 
   if (body.agents.length > 0) {
-    const agentRows = body.agents.map(a => ({
-      agent_id: a.agent_id,
-      status: a.status,
-      pid: a.pid,
-      current_task: a.current_task,
-      updated_at: now,
-    }))
+    const agentRows = body.agents.map(a => {
+      const staticAgent = STATIC_AGENTS.find(s => s.id === a.agent_id)
+      return {
+        agent_id: a.agent_id,
+        display_name: staticAgent?.name || a.agent_id,
+        role: staticAgent?.role || 'Agent',
+        room: staticAgent?.room || 'dev',
+        status: a.status,
+        pid: a.pid,
+        current_task: a.current_task,
+        updated_at: now,
+      }
+    })
     const { error: agentsError } = await supabase
       .from('office_agent_status')
       .upsert(agentRows, { onConflict: 'agent_id' })
@@ -71,8 +79,10 @@ export async function POST(request: Request) {
   }
 
   if (body.services.length > 0) {
+    const serviceNames: Record<string, string> = { userbot: 'Userbot', gateway: 'Gateway' }
     const serviceRows = body.services.map(s => ({
       service_id: s.service_id,
+      display_name: serviceNames[s.service_id] || s.service_id,
       status: s.status,
       updated_at: now,
     }))

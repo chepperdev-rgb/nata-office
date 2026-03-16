@@ -2,11 +2,12 @@ export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const ROOMS = [
-  { id: 'dev', name: 'DEV ROOM', color: '#1e40af', bg: '#1e3a5f', emoji: '💻' },
-  { id: 'data', name: 'DATA ROOM', color: '#166534', bg: '#14532d', emoji: '📊' },
-  { id: 'quality', name: 'QUALITY ROOM', color: '#991b1b', bg: '#7f1d1d', emoji: '🔍' },
-  { id: 'growth', name: 'GROWTH ROOM', color: '#92400e', bg: '#78350f', emoji: '🚀' },
-  { id: 'research', name: 'RESEARCH ROOM', color: '#5b21b6', bg: '#4c1d95', emoji: '🔬' },
+  { id: 'dev', name: 'DEV ROOM', color: '#6366f1', bg: '#1a1a2e', emoji: '💻' },
+  { id: 'data', name: 'DATA ROOM', color: '#06b6d4', bg: '#0c1a2e', emoji: '📊' },
+  { id: 'quality', name: 'QUALITY ROOM', color: '#f43f5e', bg: '#1e0a14', emoji: '🛡️' },
+  { id: 'ops', name: 'OPS ROOM', color: '#f59e0b', bg: '#1c1200', emoji: '⚙️' },
+  { id: 'social', name: 'SOCIAL MEDIA', color: '#ec4899', bg: '#1e0a18', emoji: '📱' },
+  { id: 'research', name: 'RESEARCH', color: '#8b5cf6', bg: '#150a2e', emoji: '🔬' },
 ]
 
 export const STATIC_AGENTS = [
@@ -19,10 +20,10 @@ export const STATIC_AGENTS = [
   { id: 'scraper', name: 'Скрапер', role: 'Web Scraper', model: 'sonnet', room: 'data', emoji: '🕷️' },
   { id: 'qa', name: 'QA', role: 'QA Engineer', model: 'sonnet', room: 'quality', emoji: '🔍' },
   { id: 'security', name: 'Безпека', role: 'Security Eng', model: 'sonnet', room: 'quality', emoji: '🛡️' },
-  { id: 'devops', name: 'DevOps', role: 'DevOps Engineer', model: 'sonnet', room: 'quality', emoji: '🚀' },
-  { id: 'growth', name: 'Growth', role: 'Growth & SEO', model: 'sonnet', room: 'growth', emoji: '📣' },
-  { id: 'content', name: 'Контент', role: 'Content Creator', model: 'sonnet', room: 'growth', emoji: '✍️' },
-  { id: 'ig-oracle', name: 'IG Oracle', role: 'Instagram Expert', model: 'sonnet', room: 'growth', emoji: '📱' },
+  { id: 'devops', name: 'DevOps', role: 'DevOps Engineer', model: 'sonnet', room: 'ops', emoji: '🚀' },
+  { id: 'growth', name: 'Growth', role: 'Growth & SEO', model: 'sonnet', room: 'ops', emoji: '📣' },
+  { id: 'content', name: 'Контент', role: 'Content Creator', model: 'sonnet', room: 'social', emoji: '✍️' },
+  { id: 'ig-oracle', name: 'IG Oracle', role: 'Instagram Expert', model: 'sonnet', room: 'social', emoji: '📱' },
   { id: 'artem', name: 'Артем', role: 'Research Agent', model: 'opus', room: 'research', emoji: '🔬' },
   { id: 'pm', name: 'PM', role: 'Project Manager', model: 'sonnet', room: 'research', emoji: '📋' },
 ]
