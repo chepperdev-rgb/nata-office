@@ -124,16 +124,16 @@ export default function PixelChar({ working, accentColor, isBoss, agentId }: Pix
         <rect x="23" y="22" width="4" height="4" rx="1" fill="#facc15" />
       )}
 
-      {/* Arms */}
+      {/* Arms — swing when working */}
       <rect x="2" y="21" width="4" height="10" fill={skinColor}
         style={{
-          animation: working ? 'arm-move 0.4s ease-in-out infinite' : undefined,
+          animation: working ? 'walk-arm-l 0.5s ease-in-out infinite' : undefined,
           transformOrigin: '4px 21px',
         }}
       />
       <rect x="26" y="21" width="4" height="10" fill={skinColor}
         style={{
-          animation: working ? 'arm-move 0.4s ease-in-out infinite reverse' : undefined,
+          animation: working ? 'walk-arm-r 0.5s ease-in-out infinite' : undefined,
           transformOrigin: '28px 21px',
         }}
       />
@@ -142,9 +142,19 @@ export default function PixelChar({ working, accentColor, isBoss, agentId }: Pix
       <rect x="1" y="31" width="4" height="3" fill={skinColor} />
       <rect x="27" y="31" width="4" height="3" fill={skinColor} />
 
-      {/* Legs */}
-      <rect x="9" y="33" width="6" height="10" fill={pantsColor} />
-      <rect x="17" y="33" width="6" height="10" fill={pantsColor} />
+      {/* Legs — alternate when working */}
+      <rect x="9" y="33" width="6" height="10" fill={pantsColor}
+        style={{
+          animation: working ? 'walk-leg-l 0.5s ease-in-out infinite' : undefined,
+          transformOrigin: '12px 33px',
+        }}
+      />
+      <rect x="17" y="33" width="6" height="10" fill={pantsColor}
+        style={{
+          animation: working ? 'walk-leg-r 0.5s ease-in-out infinite' : undefined,
+          transformOrigin: '20px 33px',
+        }}
+      />
       {/* Leg seam */}
       <rect x="15" y="33" width="2" height="10" fill="rgba(0,0,0,0.2)" />
 

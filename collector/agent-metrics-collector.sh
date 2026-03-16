@@ -29,17 +29,46 @@ BOOT_TIME=$(/usr/sbin/sysctl -n kern.boottime | sed 's/.*sec = \([0-9]*\).*/\1/'
 UPTIME_SECONDS=$(( $(date +%s) - BOOT_TIME ))
 
 # Check agent processes
+# Detect working agents via:
+# 1. Launcher log files: ~/tasks/{agent}/running
+# 2. Checking if agent task file is recent (< 5 min old)
+# 3. Looking for "Use @agent_id:" in running claude args (best effort)
 AGENTS_JSON="["
 FIRST=true
+NOW_TS=$(date +%s)
+
 for AGENT_ID in miron backend frontend designer data analyst scraper qa security devops growth content ig-oracle artem pm; do
-  PID=$(pgrep -f "claude.*--profile.*${AGENT_ID}" 2>/dev/null | head -1 || echo "")
-  if [ -n "$PID" ]; then
-    STATUS="working"
-    TASK=$(ps -p "$PID" -o command= 2>/dev/null | head -c 100 || echo "")
-  else
-    STATUS="idle"
-    PID="null"
-    TASK="null"
+  STATUS="idle"
+  PID="null"
+  TASK="null"
+
+  # Method 1: Check task lock/running file
+  RUNNING_FILE="${HOME}/tasks/${AGENT_ID}/running"
+  TASK_FILE="${HOME}/tasks/${AGENT_ID}/current_task.txt"
+  if [ -f "$RUNNING_FILE" ]; then
+    FILE_TS=$(stat -f %m "$RUNNING_FILE" 2>/dev/null || echo "0")
+    AGE=$(( NOW_TS - FILE_TS ))
+    if [ "$AGE" -lt 300 ]; then   # fresh within 5 min
+      STATUS="working"
+      if [ -f "$TASK_FILE" ]; then
+        TASK=$(head -c 80 "$TASK_FILE" 2>/dev/null || echo "running task")
+      else
+        TASK="running task"
+      fi
+    fi
+  fi
+
+  # Method 2: grep claude args for "@agent_id:" (works if prompt is in cmdline)
+  if [ "$STATUS" = "idle" ]; then
+    MATCH_PID=$(pgrep -f "@${AGENT_ID}" 2>/dev/null | head -1 || echo "")
+    if [ -z "$MATCH_PID" ]; then
+      MATCH_PID=$(pgrep -f "claude.*${AGENT_ID}" 2>/dev/null | head -1 || echo "")
+    fi
+    if [ -n "$MATCH_PID" ]; then
+      STATUS="working"
+      PID="$MATCH_PID"
+      TASK=$(ps -p "$MATCH_PID" -o command= 2>/dev/null | sed 's/"/\\"/g' | head -c 80 || echo "active")
+    fi
   fi
 
   if [ "$FIRST" = true ]; then
@@ -48,10 +77,14 @@ for AGENT_ID in miron backend frontend designer data analyst scraper qa security
     AGENTS_JSON+=","
   fi
 
+  TASK_ESCAPED=$(echo "${TASK}" | sed 's/"/\\"/g' | head -c 80)
   if [ "$PID" = "null" ]; then
-    AGENTS_JSON+="{\"agent_id\":\"${AGENT_ID}\",\"status\":\"${STATUS}\",\"pid\":null,\"current_task\":null}"
+    if [ "$TASK" = "null" ]; then
+      AGENTS_JSON+="{\"agent_id\":\"${AGENT_ID}\",\"status\":\"${STATUS}\",\"pid\":null,\"current_task\":null}"
+    else
+      AGENTS_JSON+="{\"agent_id\":\"${AGENT_ID}\",\"status\":\"${STATUS}\",\"pid\":null,\"current_task\":\"${TASK_ESCAPED}\"}"
+    fi
   else
-    TASK_ESCAPED=$(echo "$TASK" | sed 's/"/\\"/g' | head -c 100)
     AGENTS_JSON+="{\"agent_id\":\"${AGENT_ID}\",\"status\":\"${STATUS}\",\"pid\":${PID},\"current_task\":\"${TASK_ESCAPED}\"}"
   fi
 done
@@ -73,6 +106,30 @@ CLAUDE_PROCESSES=$(pgrep -c -f "claude" 2>/dev/null || echo "0")
 
 SERVICES_JSON="[{\"service_id\":\"userbot\",\"status\":\"${USERBOT_STATUS}\"},{\"service_id\":\"gateway\",\"status\":\"${GATEWAY_STATUS}\",\"details\":{\"claude_processes\":${CLAUDE_PROCESSES}}}]"
 
+# Build activity log entries for working agents
+ACTIVITY_JSON="["
+FIRST_ACT=true
+for AGENT_ID in miron backend frontend designer data analyst scraper qa security devops growth content artem pm; do
+  TASK_FILE="${HOME}/tasks/${AGENT_ID}/current_task.txt"
+  RUNNING_FILE="${HOME}/tasks/${AGENT_ID}/running"
+  if [ -f "$RUNNING_FILE" ]; then
+    FILE_TS=$(stat -f %m "$RUNNING_FILE" 2>/dev/null || echo "0")
+    AGE=$(( NOW_TS - FILE_TS ))
+    if [ "$AGE" -lt 300 ]; then
+      [ "$FIRST_ACT" = false ] && ACTIVITY_JSON+=","
+      if [ -f "$TASK_FILE" ]; then
+        TASK=$(head -c 60 "$TASK_FILE" 2>/dev/null || echo "working on task")
+      else
+        TASK="running task"
+      fi
+      TASK_ESCAPED=$(echo "$TASK" | sed 's/"/\\"/g')
+      ACTIVITY_JSON+="{\"agent_id\":\"${AGENT_ID}\",\"action\":\"${TASK_ESCAPED}\"}"
+      FIRST_ACT=false
+    fi
+  fi
+done
+ACTIVITY_JSON+="]"
+
 # Build payload
 PAYLOAD=$(cat <<EOF
 {
@@ -85,7 +142,8 @@ PAYLOAD=$(cat <<EOF
     "uptime_seconds": ${UPTIME_SECONDS}
   },
   "agents": ${AGENTS_JSON},
-  "services": ${SERVICES_JSON}
+  "services": ${SERVICES_JSON},
+  "activity": ${ACTIVITY_JSON}
 }
 EOF
 )

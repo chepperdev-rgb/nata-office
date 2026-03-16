@@ -105,13 +105,14 @@ export default function AgentDesk({ agent, roomColor, isBoss, onClick }: AgentDe
         {(agent.name ?? agent.id)?.split(' ')[0]?.toUpperCase()}
       </div>
 
-      {/* Character */}
+      {/* Character — bob up/down when working */}
       <div
         className="transition-transform duration-200 group-hover:scale-110"
         style={{
           filter: isWorking
             ? `drop-shadow(0 0 6px ${roomColor}80)`
             : undefined,
+          animation: isWorking ? 'walk-bob 0.5s ease-in-out infinite' : undefined,
         }}
       >
         <PixelChar working={isWorking} accentColor={roomColor} isBoss={isBoss} agentId={agent.id} />

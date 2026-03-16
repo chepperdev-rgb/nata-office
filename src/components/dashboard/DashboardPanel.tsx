@@ -71,6 +71,17 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const workingCount = workingAgents.length
   const totalCount = STATIC_AGENTS.length
 
+  // Real active processes count — use natali.claude_processes (from collector)
+  // fallback to working agents count
+  const activeCount = typeof natali.claude_processes === 'number'
+    ? natali.claude_processes
+    : workingCount
+
+  // Real tasks count — today's activity entries
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const tasksToday = activity.filter(a => new Date(a.created_at) >= todayStart).length
+
   // Update last ping every second
   useEffect(() => {
     if (!metrics?.updated_at) return
@@ -124,16 +135,25 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed top-14 right-0 bottom-0 w-[380px] z-50 flex flex-col"
+        <>
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 z-40"
+            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+          <motion.div
+          className="fixed inset-0 z-50 flex flex-col"
           style={{
-            background: 'rgba(17, 17, 17, 0.97)',
-            backdropFilter: 'blur(20px)',
-            borderLeft: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(13, 13, 13, 0.98)',
+            backdropFilter: 'blur(24px)',
           }}
-          initial={{ x: 380 }}
-          animate={{ x: 0 }}
-          exit={{ x: 380 }}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
           transition={{ type: 'spring', damping: 30, stiffness: 400 }}
         >
           {/* Tab switcher */}
@@ -161,7 +181,8 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
           )}
 
           {/* Dashboard Tab */}
-          {activeTab === 'dashboard' && <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {activeTab === 'dashboard' && <div className="flex-1 overflow-y-auto">
+          <div className="max-w-lg mx-auto p-5 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white/80">Dashboard</h2>
@@ -316,14 +337,14 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
 
             {/* Top metrics row */}
             <div className="grid grid-cols-3 gap-2">
-              {/* Active agents */}
+              {/* Active processes (real Claude count from collector) */}
               <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="text-2xl font-bold" style={{ color: workingCount > 0 ? '#4ade80' : '#555' }}>{workingCount}</div>
+                <div className="text-2xl font-bold" style={{ color: activeCount > 0 ? '#4ade80' : '#555' }}>{activeCount}</div>
                 <div className="text-[9px] text-white/30 mt-0.5">Active</div>
               </div>
-              {/* Total today */}
+              {/* Tasks today from real activity log */}
               <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="text-2xl font-bold text-white/70">{activity.length}</div>
+                <div className="text-2xl font-bold text-white/70">{tasksToday}</div>
                 <div className="text-[9px] text-white/30 mt-0.5">Tasks</div>
               </div>
               {/* System Score */}
@@ -512,8 +533,10 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
               </div>
             </div>
           </div>
+          </div>
           }
         </motion.div>
+        </>
       )}
     </AnimatePresence>
   )

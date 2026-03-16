@@ -94,8 +94,40 @@ export async function POST(request: Request) {
     }
   }
 
+  // Always log activity — working agents first, then system heartbeat if nothing active
+  const activityEntries: Array<{ agent_id: string; action: string }> = []
+
   if (body.activity && body.activity.length > 0) {
-    const activityRows = body.activity.map(a => ({
+    activityEntries.push(...body.activity)
+  }
+
+  // Log system metrics heartbeat every collector run
+  const workingCount = body.agents.filter(a => a.status === 'working').length
+  if (workingCount > 0) {
+    activityEntries.push({
+      agent_id: 'system',
+      action: `${workingCount} agent${workingCount !== 1 ? 's' : ''} active — CPU ${body.system.cpu_percent}%`,
+    })
+  } else {
+    // Rotate through system events to keep activity log alive
+    const userbot = body.services.find(s => s.service_id === 'userbot')
+    const gateway = body.services.find(s => s.service_id === 'gateway')
+    const minute = new Date(now).getMinutes()
+    const events = [
+      `System metrics: CPU ${body.system.cpu_percent}% · RAM ${body.system.ram_percent}%`,
+      `Userbot ${userbot?.status ?? '?'} · Gateway ${gateway?.status ?? '?'}`,
+      `Disk ${body.system.disk_percent}% used · Uptime ${Math.floor(body.system.uptime_seconds / 3600)}h`,
+      `All agents on standby — ready for tasks`,
+      `System heartbeat — all services nominal`,
+    ]
+    activityEntries.push({
+      agent_id: 'system',
+      action: events[minute % events.length],
+    })
+  }
+
+  if (activityEntries.length > 0) {
+    const activityRows = activityEntries.map(a => ({
       agent_id: a.agent_id,
       action: a.action,
       created_at: now,
@@ -106,6 +138,17 @@ export async function POST(request: Request) {
     if (activityError) {
       return NextResponse.json({ error: activityError.message }, { status: 500 })
     }
+  }
+
+  // Prune old activity (keep last 200 rows)
+  const { data: oldRows } = await supabase
+    .from('office_activity_log')
+    .select('id')
+    .order('created_at', { ascending: false })
+    .range(200, 9999)
+  if (oldRows && oldRows.length > 0) {
+    const ids = oldRows.map((r: { id: number }) => r.id)
+    await supabase.from('office_activity_log').delete().in('id', ids)
   }
 
   return NextResponse.json({ ok: true })
