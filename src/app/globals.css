@@ -111,6 +111,12 @@ body {
   50% { transform: rotate(15deg); }
 }
 
+/* ── CPU Core ball pulse ──────────────────────── */
+@keyframes core-fill-pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.75; }
+}
+
 /* ── Thinking dots ────────────────────────────── */
 @keyframes thinking-dot {
   0%,80%,100% { opacity: 0.15; transform: scale(0.8); }

@@ -22,6 +22,7 @@ export interface Room {
 
 export interface SystemMetrics {
   cpu_percent: number
+  cpu_cores?: number
   ram_percent: number
   ram_used_gb: number
   ram_total_gb: number
@@ -30,10 +31,19 @@ export interface SystemMetrics {
   updated_at: string
 }
 
+export interface NatalyProcess {
+  name: string
+  pid: number
+  cpu: string
+  mem: string
+  since: string
+}
+
 export interface ServiceStatus {
   service_id: string
   display_name: string
   status: 'running' | 'down' | 'error' | 'unknown'
+  details?: { processes?: NatalyProcess[]; claude_processes?: number } | null
   updated_at: string
 }
 

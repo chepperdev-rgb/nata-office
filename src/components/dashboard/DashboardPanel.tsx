@@ -8,6 +8,7 @@ import { useActivity } from '@/hooks/useActivity'
 import { useAgents } from '@/hooks/useAgents'
 import { useNataliStatus } from '@/hooks/useNataliStatus'
 import { useProcesses } from '@/hooks/useProcesses'
+import { useThoughts } from '@/hooks/useThoughts'
 import { STATIC_AGENTS } from '@/lib/constants'
 import TerminalPanel from './TerminalPanel'
 
@@ -15,6 +16,121 @@ interface DashboardPanelProps {
   open: boolean
   onClose: () => void
 }
+
+// ─── Думки Наталі: розкладний панель зі скролом ────────────────────────────
+interface Thought { id: string; action: string; created_at: string }
+
+function ThoughtsPanel({ thoughts }: { thoughts: Thought[] }) {
+  const [expanded, setExpanded] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const prefixMap: Record<string, { color: string }> = {
+    '💭': { color: '#fbbf2499' },
+    '⚡': { color: '#4ade8099' },
+    '❌': { color: '#f43f5e99' },
+    '✅': { color: '#34d39999' },
+  }
+
+  const rows = thoughts.map(t => {
+    const match = t.action.match(/^\[(.+?)\]\s*(.+)/)
+    const icon = match?.[1] ?? '💭'
+    const text = match?.[2] ?? t.action
+    const style = prefixMap[icon] ?? { color: '#fbbf2499' }
+    const timeStr = new Date(t.created_at).toLocaleTimeString([], {
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    })
+    return { id: t.id, icon, text, style, timeStr }
+  })
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(251,191,36,0.15)' }}
+    >
+      {/* Header — клікабельний */}
+      <button
+        className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer select-none"
+        style={{ borderBottom: expanded ? '1px solid rgba(251,191,36,0.08)' : 'none', background: 'rgba(251,191,36,0.04)' }}
+        onClick={() => setExpanded(v => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm">🧠</span>
+          <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#fbbf24cc' }}>
+            Думки Наталі
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <motion.div
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ background: '#fbbf24' }}
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+          <span className="text-[9px] text-white/20">live</span>
+          {/* Стрілочка-chevron */}
+          <motion.svg
+            width="14" height="14" viewBox="0 0 14 14" fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ duration: 0.25 }}
+            style={{ display: 'inline-block', flexShrink: 0 }}
+          >
+            <path d="M3 5L7 9L11 5" stroke="rgba(251,191,36,0.7)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </motion.svg>
+        </div>
+      </button>
+
+      {/* Тіло — розкладається */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="thoughts-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div
+              ref={scrollRef}
+              className="px-3 py-2 space-y-1.5 overflow-y-auto"
+              style={{ maxHeight: '340px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(251,191,36,0.3) transparent' }}
+            >
+              {rows.length === 0 ? (
+                <p className="text-[10px] text-white/15 italic mt-2">Тиша... чекаю задач 🌙</p>
+              ) : (
+                rows.map((r, i) => (
+                  <motion.div
+                    key={r.id}
+                    initial={i === 0 ? { opacity: 0, x: -8 } : false}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex items-start gap-2"
+                  >
+                    <span className="text-[9px] text-white/20 mt-0.5 shrink-0 font-mono">{r.timeStr}</span>
+                    <span className="text-[10px] shrink-0">{r.icon}</span>
+                    <span className="text-[11px] leading-tight" style={{ color: r.style.color }}>{r.text}</span>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Collapsed preview — остання думка */}
+      {!expanded && rows.length > 0 && (
+        <div className="px-3 py-2 flex items-start gap-2">
+          <span className="text-[9px] text-white/20 mt-0.5 shrink-0 font-mono">{rows[0].timeStr}</span>
+          <span className="text-[10px] shrink-0">{rows[0].icon}</span>
+          <span className="text-[11px] leading-tight truncate" style={{ color: rows[0].style.color }}>{rows[0].text}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 function MetricBar({ value, color }: { value: number; color: string }) {
   return (
@@ -55,6 +171,73 @@ function getCpuColor(percent: number): string {
   return '#f43f5e'
 }
 
+// Neon CPU core balls
+// Max CPU = cores × 100% (e.g. 1200% for 12 cores)
+// Each ball = 100% of one core. Gray by default, fills yellow when active.
+function CpuCoreBalls({ cpuPercent, cores = 12 }: { cpuPercent: number; cores?: number }) {
+  const fullLit = Math.floor(cpuPercent / 100)          // fully lit balls
+  const partialFill = (cpuPercent % 100) / 100          // 0..1 for next ball
+  const YELLOW = '#facc15'
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cores}, 1fr)`, gap: 4, width: '100%', marginTop: 6 }}>
+      {Array.from({ length: cores }).map((_, i) => {
+        const isFull = i < fullLit
+        const isPartial = i === fullLit && partialFill > 0
+        const fill = isFull ? 1 : isPartial ? partialFill : 0
+
+        return (
+          <div
+            key={i}
+            style={{
+              position: 'relative',
+              aspectRatio: '1',
+              borderRadius: '50%',
+              background: '#111',
+              border: `1px solid ${fill > 0 ? YELLOW + '99' : 'rgba(255,255,255,0.1)'}`,
+              boxShadow: isFull
+                ? `0 0 7px ${YELLOW}99, inset 0 0 4px ${YELLOW}22`
+                : isPartial
+                ? `0 0 3px ${YELLOW}55`
+                : 'none',
+              overflow: 'hidden',
+              transition: 'border-color 0.5s, box-shadow 0.5s',
+            }}
+          >
+            {/* Fill from bottom */}
+            {fill > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: `${Math.round(fill * 100)}%`,
+                  background: `linear-gradient(0deg, ${YELLOW}ff 0%, ${YELLOW}bb 70%, ${YELLOW}55 100%)`,
+                  transition: 'height 0.6s ease',
+                  animation: isFull ? `core-fill-pulse 2s ease-in-out ${(i * 0.1) % 1}s infinite` : undefined,
+                }}
+              />
+            )}
+            {/* Shine dot */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '18%',
+                left: '22%',
+                width: '28%',
+                height: '28%',
+                borderRadius: '50%',
+                background: fill > 0 ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.04)',
+              }}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const { metrics } = useMetrics()
   const { services } = useServices()
@@ -62,19 +245,23 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const { agents } = useAgents()
   const { natali } = useNataliStatus()
   const { lines: processLines } = useProcesses()
+  const { thoughts } = useThoughts()
   const terminalRef = useRef<HTMLDivElement>(null)
   const [lastPing, setLastPing] = useState('')
   const [restarting, setRestarting] = useState(false)
   const [activeTab, setActiveTab] = useState<'dashboard' | 'terminal'>('dashboard')
+  const [tasksOpen, setTasksOpen] = useState(false)
+
+  // Nataly processes from services
+  const natalyProcesses = (services.find(s => s.service_id === 'nataly_processes')?.details?.processes) ?? []
 
   const workingAgents = agents.filter(a => a.status === 'working')
   const workingCount = workingAgents.length
   const totalCount = STATIC_AGENTS.length
 
-  // Real active processes count — use natali.claude_processes (from collector)
-  // fallback to working agents count
-  const activeCount = typeof natali.claude_processes === 'number'
-    ? natali.claude_processes
+  // Active = number of running claude CLI processes (from processLines unique agents)
+  const activeCount = processLines.filter(l => l.agent !== 'system').length > 0
+    ? processLines.filter(l => l.agent !== 'system').length
     : workingCount
 
   // Real tasks count — today's activity entries
@@ -342,10 +529,14 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                 <div className="text-2xl font-bold" style={{ color: activeCount > 0 ? '#4ade80' : '#555' }}>{activeCount}</div>
                 <div className="text-[9px] text-white/30 mt-0.5">Active</div>
               </div>
-              {/* Tasks today from real activity log */}
-              <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="text-2xl font-bold text-white/70">{tasksToday}</div>
-                <div className="text-[9px] text-white/30 mt-0.5">Tasks</div>
+              {/* Tasks today — clickable popup */}
+              <div
+                className="rounded-xl p-3 text-center cursor-pointer"
+                style={{ background: tasksOpen ? 'rgba(250,204,21,0.08)' : 'rgba(255,255,255,0.04)', border: `1px solid ${tasksOpen ? 'rgba(250,204,21,0.3)' : 'rgba(255,255,255,0.06)'}`, transition: 'all 0.2s' }}
+                onClick={() => setTasksOpen(v => !v)}
+              >
+                <div className="text-2xl font-bold" style={{ color: tasksToday > 0 ? '#facc15' : '#555' }}>{tasksToday}</div>
+                <div className="text-[9px] text-white/30 mt-0.5">Tasks ▾</div>
               </div>
               {/* System Score */}
               <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -354,25 +545,66 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
               </div>
             </div>
 
+            {/* Tasks popup */}
+            <AnimatePresence>
+              {tasksOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden rounded-xl"
+                  style={{ background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.15)' }}
+                >
+                  <div className="p-3 space-y-1.5">
+                    <div className="text-[10px] text-white/30 uppercase tracking-widest mb-2">Today&apos;s activity</div>
+                    {activity.length === 0 ? (
+                      <p className="text-xs text-white/20">No tasks today</p>
+                    ) : (
+                      activity
+                        .filter(a => new Date(a.created_at) >= (() => { const d = new Date(); d.setHours(0,0,0,0); return d })())
+                        .slice(0, 10)
+                        .map((a) => {
+                          const agent = STATIC_AGENTS.find(s => s.id === a.agent_id)
+                          return (
+                            <div key={a.id} className="flex items-start gap-2">
+                              <span className="text-[10px] text-white/20 mt-0.5 shrink-0">
+                                {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                              </span>
+                              <span className="text-[10px]" style={{ color: '#facc1599' }}>
+                                {agent?.emoji ?? '⚙️'} {agent?.name ?? a.agent_id}
+                              </span>
+                              <span className="text-[10px] text-white/50 truncate">{a.action}</span>
+                            </div>
+                          )
+                        })
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* System Metrics */}
             <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <h3 className="text-[11px] font-medium text-white/40 uppercase tracking-wider">System</h3>
 
-              {/* CPU */}
+              {/* CPU — neon core balls */}
               <div>
-                <div className="flex justify-between text-xs mb-1.5">
+                <div className="flex justify-between text-xs mb-1">
                   <span className="text-white/50">CPU</span>
-                  <span style={{ color: getCpuColor(cpuPercent) }}>{cpuPercent.toFixed(1)}%</span>
+                  <span style={{ color: cpuPercent > 0 ? '#facc15' : 'rgba(255,255,255,0.3)' }}>
+                    {cpuPercent.toFixed(0)}% <span className="text-white/30">/ {(metrics?.cpu_cores ?? 12) * 100}%</span>
+                  </span>
                 </div>
-                <MetricBar value={cpuPercent} color={getCpuColor(cpuPercent)} />
+                <CpuCoreBalls cpuPercent={cpuPercent} cores={metrics?.cpu_cores ?? 12} />
               </div>
 
               {/* RAM */}
-              <div>
+              <div className="mt-2">
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-white/50">Memory</span>
                   <span style={{ color: getMemoryColor(ramPercent) }}>
-                    {metrics ? `${metrics.ram_used_gb.toFixed(1)}/${metrics.ram_total_gb}GB` : '—'}
+                    {metrics ? `${metrics.ram_used_gb.toFixed(1)} / 32 GB` : '—'}
                   </span>
                 </div>
                 <MetricBar value={ramPercent} color={getMemoryColor(ramPercent)} />
@@ -468,7 +700,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                     className="text-[10px] leading-relaxed whitespace-nowrap"
                     style={{ color: '#4ade80' }}
                   >
-                    <span style={{ color: '#4ade8080' }}>[{line.time}]</span>{' '}
+                    <span style={{ color: '#4ade8080' }}>[{new Date(line.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}]</span>{' '}
                     <span style={{ color: '#4ade80' }}>{line.agent.padEnd(12)}</span>{' '}
                     <span style={{ color: '#4ade8060' }}>
                       {line.action.startsWith('running') || line.action.includes('passed') || line.action.includes('completed') ? '\u2713' : '\u2192'}
@@ -483,6 +715,42 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                 )}
               </div>
             </div>
+
+            {/* Nataly Processes */}
+            <div className="rounded-xl p-4 space-y-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[11px] font-medium uppercase tracking-wider" style={{ color: '#a78bfa99' }}>
+                  ⚙ Nataly Processes
+                </h3>
+                <span className="text-[9px] text-white/20">{natalyProcesses.length} running</span>
+              </div>
+              {natalyProcesses.length === 0 ? (
+                <div className="text-[10px] text-white/20">No data yet — waiting for collector...</div>
+              ) : (
+                <div className="space-y-1.5">
+                  {natalyProcesses.map((proc, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg px-2 py-1.5" style={{ background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.08)' }}>
+                      <div className="flex items-center gap-2">
+                        {/* Status dot */}
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#a78bfa', boxShadow: '0 0 4px #a78bfa88' }} />
+                        <span className="text-[11px] font-medium text-white/80">{proc.name}</span>
+                        <span className="text-[9px] text-white/20">PID {proc.pid}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] text-white/40">
+                        <span style={{ color: parseFloat(proc.cpu) > 50 ? '#facc15' : 'rgba(255,255,255,0.3)' }}>
+                          {proc.cpu}
+                        </span>
+                        <span>{proc.mem}</span>
+                        <span className="text-[9px] text-white/20">{proc.since}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 🧠 Думки Наталі — розкладний блок */}
+            <ThoughtsPanel thoughts={thoughts} />
 
             {/* Services */}
             <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>

@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('office_activity_log')
-      .select('id, agent_id, action, details, created_at')
+      .select('id, agent_id, action, created_at')
       .order('created_at', { ascending: false })
       .limit(30)
 
@@ -20,9 +20,9 @@ export async function GET() {
 
     const lines = data.reverse().map(row => ({
       id: String(row.id),
-      time: new Date(row.created_at).toTimeString().slice(0, 8),
+      time: row.created_at, // raw ISO — formatted client-side in user's timezone
       agent: row.agent_id ?? 'system',
-      action: row.action ?? row.details ?? '...',
+      action: row.action ?? '...',
     }))
 
     return NextResponse.json(lines)

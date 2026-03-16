@@ -11,13 +11,19 @@ COLLECTOR_SECRET="${COLLECTOR_SECRET:-nataly-collector-2026}"
 # System metrics
 CPU_PERCENT=$(ps -A -o %cpu | awk '{s+=$1} END {printf "%.1f", s}')
 RAM_INFO=$(vm_stat | awk '
-  /Pages active/ {active=$3}
-  /Pages wired/ {wired=$4}
-  /Pages free/ {free=$3}
-  /Pages inactive/ {inactive=$3}
+  /page size of ([0-9]+) bytes/ {page=$8+0}
+  /Pages active/ {active=$3+0}
+  /Pages wired/ {wired=$4+0}
+  /Pages free/ {free=$3+0}
+  /Pages inactive/ {inactive=$3+0}
+  /Pages speculative/ {spec=$3+0}
+  /Pages purgeable/ {purgeable=$3+0}
   END {
-    used=(active+wired)*4096/1073741824
-    total=(active+wired+free+inactive)*4096/1073741824
+    if (page==0) page=16384
+    used=(active+wired)*page/1073741824
+    total=(active+wired+free+inactive+spec+purgeable)*page/1073741824
+    # Clamp to known hardware sizes
+    if (total < 30) total=32
     printf "%.1f %.0f", used, total
   }
 ')
@@ -27,6 +33,7 @@ RAM_PERCENT=$(echo "$RAM_USED $RAM_TOTAL" | awk '{printf "%.1f", ($1/$2)*100}')
 DISK_PERCENT=$(df -H / | awk 'NR==2 {gsub(/%/,"",$5); print $5}')
 BOOT_TIME=$(/usr/sbin/sysctl -n kern.boottime | sed 's/.*sec = \([0-9]*\).*/\1/')
 UPTIME_SECONDS=$(( $(date +%s) - BOOT_TIME ))
+CPU_CORES=$(python3 -c "import os; print(os.cpu_count())" 2>/dev/null || echo "12")
 
 # Check agent processes
 # Detect working agents via:
@@ -104,6 +111,32 @@ fi
 # Count Claude processes (active AI agents)
 CLAUDE_PROCESSES=$(pgrep -c -f "claude" 2>/dev/null || echo "0")
 
+# Collect Nataly-related processes for the "Nataly Processes" panel
+NATALY_PROCS_JSON="["
+NATALY_FIRST=true
+
+add_proc() {
+  local NAME="$1"; local CMD="$2"
+  local PID=$(pgrep -f "$CMD" 2>/dev/null | head -1)
+  [ -z "$PID" ] && return
+  local MEM=$(ps -p "$PID" -o rss= 2>/dev/null | awk '{printf "%.0fMB", $1/1024}' || echo "?")
+  local CPU=$(ps -p "$PID" -o %cpu= 2>/dev/null | tr -d ' ' || echo "?")
+  local START=$(ps -p "$PID" -o lstart= 2>/dev/null | awk '{print $4}' || echo "?")
+  [ "$NATALY_FIRST" = false ] && NATALY_PROCS_JSON+=","
+  NATALY_PROCS_JSON+="{\"name\":\"${NAME}\",\"pid\":${PID},\"cpu\":\"${CPU}%\",\"mem\":\"${MEM}\",\"since\":\"${START}\"}"
+  NATALY_FIRST=false
+}
+
+add_proc "Userbot"          "natali-userbot"
+add_proc "Gateway"          "openclaw-gateway"
+add_proc "Claude CLI"       "claude"
+add_proc "Voice Pipeline"   "voice-pipeline"
+add_proc "Watchdog"         "natali-watchdog\|openclaw-watchdog"
+add_proc "Python (scripts)" "python.*agent\|python.*natali"
+add_proc "Node (openclaw)"  "node.*openclaw"
+
+NATALY_PROCS_JSON+="]"
+
 SERVICES_JSON="[{\"service_id\":\"userbot\",\"status\":\"${USERBOT_STATUS}\"},{\"service_id\":\"gateway\",\"status\":\"${GATEWAY_STATUS}\",\"details\":{\"claude_processes\":${CLAUDE_PROCESSES}}}]"
 
 # Build activity log entries for working agents
@@ -135,6 +168,7 @@ PAYLOAD=$(cat <<EOF
 {
   "system": {
     "cpu_percent": ${CPU_PERCENT},
+    "cpu_cores": ${CPU_CORES},
     "ram_percent": ${RAM_PERCENT},
     "ram_used_gb": ${RAM_USED},
     "ram_total_gb": ${RAM_TOTAL},
@@ -143,6 +177,7 @@ PAYLOAD=$(cat <<EOF
   },
   "agents": ${AGENTS_JSON},
   "services": ${SERVICES_JSON},
+  "nataly_processes": ${NATALY_PROCS_JSON},
   "activity": ${ACTIVITY_JSON}
 }
 EOF

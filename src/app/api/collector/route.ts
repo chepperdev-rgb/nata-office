@@ -10,6 +10,7 @@ const supabase = createClient(
 interface CollectorPayload {
   system: {
     cpu_percent: number
+    cpu_cores?: number
     ram_percent: number
     ram_used_gb: number
     ram_total_gb: number
@@ -25,6 +26,13 @@ interface CollectorPayload {
   services: Array<{
     service_id: string
     status: string
+  }>
+  nataly_processes?: Array<{
+    name: string
+    pid: number
+    cpu: string
+    mem: string
+    since: string
   }>
   activity?: Array<{
     agent_id: string
@@ -76,6 +84,19 @@ export async function POST(request: Request) {
     if (agentsError) {
       return NextResponse.json({ error: agentsError.message }, { status: 500 })
     }
+  }
+
+  // Store nataly_processes snapshot as a special service record
+  if (body.nataly_processes && body.nataly_processes.length > 0) {
+    await supabase
+      .from('office_service_status')
+      .upsert({
+        service_id: 'nataly_processes',
+        status: 'running',
+        display_name: 'Nataly Processes',
+        details: { processes: body.nataly_processes },
+        updated_at: now,
+      }, { onConflict: 'service_id' })
   }
 
   if (body.services.length > 0) {
