@@ -38,6 +38,18 @@ interface CollectorPayload {
     agent_id: string
     action: string
   }>
+  sessions?: Array<{
+    session_id: string
+    session_key: string
+    agent_id: string
+    task_summary: string | null
+    model: string
+    tokens_in: number
+    tokens_out: number
+    tokens_total: number
+    status: string
+    age_ms: number
+  }>
 }
 
 export async function POST(request: Request) {
@@ -159,6 +171,28 @@ export async function POST(request: Request) {
     if (activityError) {
       return NextResponse.json({ error: activityError.message }, { status: 500 })
     }
+  }
+
+  // Store agent session history
+  if (body.sessions && body.sessions.length > 0) {
+    const sessionRows = body.sessions.map(s => ({
+      session_id: s.session_id,
+      session_key: s.session_key,
+      agent_id: s.agent_id,
+      task_summary: s.task_summary,
+      model: s.model,
+      tokens_in: s.tokens_in,
+      tokens_out: s.tokens_out,
+      tokens_total: s.tokens_total,
+      status: s.status,
+      started_at: new Date(Date.now() - s.age_ms).toISOString(),
+      finished_at: s.status === 'completed' ? now : null,
+      source: 'openclaw',
+      updated_at: now,
+    }))
+    await supabase
+      .from('office_agent_sessions')
+      .upsert(sessionRows, { onConflict: 'session_id' })
   }
 
   // Prune old activity (keep last 200 rows)
