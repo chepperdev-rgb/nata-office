@@ -11,10 +11,205 @@ import { useProcesses } from '@/hooks/useProcesses'
 import { useThoughts } from '@/hooks/useThoughts'
 import { STATIC_AGENTS } from '@/lib/constants'
 import TerminalPanel from './TerminalPanel'
+import AIStudioPanel from './AIStudioPanel'
 
 interface DashboardPanelProps {
   open: boolean
   onClose: () => void
+}
+
+// ─── Monochrome SVG Icons ────────────────────────────────────────────────────
+function IconRefresh({ size = 12, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.5 3v3.5h-3.5M2.5 13v-3.5h3.5M13 6.5A5.5 5.5 0 004.2 3.8M3 9.5A5.5 5.5 0 0011.8 12.2" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function IconTrash({ size = 12, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 4h12M5.5 4V2.5h5V4M6.5 7v5M9.5 7v5M3.5 4l.7 9.5h7.6L12.5 4" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function IconGear({ size = 12, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="8" r="2.5" stroke={color} strokeWidth="1.3"/>
+      <path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.4 3.4l.7.7M11.9 11.9l.7.7M3.4 12.6l.7-.7M11.9 4.1l.7-.7" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function IconBrain({ size = 12, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 2.5C6.6 2.5 5.5 3.5 5.5 4.8c0 .3.1.7.2 1C4.6 6.2 4 7.1 4 8.2c0 .8.3 1.5.8 2-.5.4-.8 1-.8 1.6 0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2 0-.6-.3-1.2-.8-1.6.5-.5.8-1.2.8-2 0-1.1-.6-2-1.7-2.4.1-.3.2-.7.2-1C10.5 3.5 9.4 2.5 8 2.5z" stroke={color} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 5.5v7" stroke={color} strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+    </svg>
+  )
+}
+
+// ─── Nataly Pixel Character — Barbie edition ────────────────────────────────
+function NatalyChar({ working = false }: { working?: boolean }) {
+  // Barbie: тонка талія, пишні стегна, великі очі, довге волосся, рожева сукня
+  const skin   = '#f5c9a0'
+  const hair   = '#1c0a0a'
+  const hairH  = '#2e1010'
+  const pink   = '#f472b6'
+  const pinkD  = '#db2777'
+  const pinkL  = '#fbcfe8'
+  const heel   = '#be185d'
+  const lip    = '#e11d48'
+
+  return (
+    <svg
+      width="64" height="88" viewBox="0 0 40 55"
+      style={{
+        imageRendering: 'pixelated',
+        animation: working ? 'typing 0.5s ease-in-out infinite' : 'idle-think 4s ease-in-out infinite',
+        transformOrigin: 'bottom center',
+        filter: 'drop-shadow(0 4px 12px rgba(244,114,182,0.25))',
+      }}
+    >
+      {/* ══ HAIR BACK ══ */}
+      <rect x="3"  y="2"  width="4" height="24" fill={hair} opacity="0.9"/>
+      <rect x="33" y="2"  width="4" height="24" fill={hair} opacity="0.9"/>
+      <rect x="4"  y="2"  width="2" height="20" fill={hairH} opacity="0.5"/>
+      <rect x="34" y="2"  width="2" height="20" fill={hairH} opacity="0.5"/>
+      {/* hair shine */}
+      <rect x="5"  y="3"  width="1" height="8"  fill="rgba(255,255,255,0.12)"/>
+      <rect x="34" y="3"  width="1" height="8"  fill="rgba(255,255,255,0.12)"/>
+
+      {/* ══ HAIR TOP ══ */}
+      <rect x="8"  y="0"  width="24" height="5" fill={hair}/>
+      <rect x="6"  y="3"  width="28" height="4" fill={hair}/>
+      {/* center part */}
+      <rect x="19" y="0"  width="2"  height="4" fill={hairH} opacity="0.6"/>
+
+      {/* ══ HEAD (oval-ish) ══ */}
+      <rect x="9"  y="4"  width="22" height="17" fill={skin}/>
+      <rect x="8"  y="6"  width="2"  height="12" fill={skin}/>
+      <rect x="30" y="6"  width="2"  height="12" fill={skin}/>
+      {/* jaw taper */}
+      <rect x="10" y="19" width="20" height="2"  fill={skin}/>
+      <rect x="12" y="21" width="16" height="1"  fill={skin}/>
+
+      {/* ══ EARRINGS ══ */}
+      <rect x="7"  y="14" width="2" height="4" fill={pink} opacity="0.9"/>
+      <rect x="31" y="14" width="2" height="4" fill={pink} opacity="0.9"/>
+      <rect x="7"  y="17" width="2" height="2" fill={pinkL} opacity="0.7"/>
+      <rect x="31" y="17" width="2" height="2" fill={pinkL} opacity="0.7"/>
+
+      {/* ══ BROWS (fine arched) ══ */}
+      <rect x="11" y="8"  width="6" height="1"  fill={hair} opacity="0.8"/>
+      <rect x="23" y="8"  width="6" height="1"  fill={hair} opacity="0.8"/>
+      <rect x="10" y="9"  width="1" height="1"  fill={hair} opacity="0.4"/>
+      <rect x="29" y="9"  width="1" height="1"  fill={hair} opacity="0.4"/>
+
+      {/* ══ EYES (big almond) ══ */}
+      {/* lashes top */}
+      <rect x="11" y="10" width="7" height="1"  fill={hair}/>
+      <rect x="22" y="10" width="7" height="1"  fill={hair}/>
+      {/* iris */}
+      <rect x="11" y="11" width="7" height="5"  fill="#1a0a0a"/>
+      <rect x="22" y="11" width="7" height="5"  fill="#1a0a0a"/>
+      {/* iris color */}
+      <rect x="12" y="12" width="5" height="3"  fill="#5c2a2a" opacity="0.8"/>
+      <rect x="23" y="12" width="5" height="3"  fill="#5c2a2a" opacity="0.8"/>
+      {/* pupil */}
+      <rect x="13" y="12" width="3" height="3"  fill="#0a0505"/>
+      <rect x="24" y="12" width="3" height="3"  fill="#0a0505"/>
+      {/* sparkle */}
+      <rect x="14" y="12" width="1" height="1"  fill="rgba(255,255,255,0.95)"/>
+      <rect x="25" y="12" width="1" height="1"  fill="rgba(255,255,255,0.95)"/>
+      <rect x="15" y="14" width="1" height="1"  fill="rgba(255,255,255,0.4)"/>
+      <rect x="26" y="14" width="1" height="1"  fill="rgba(255,255,255,0.4)"/>
+      {/* lower lash */}
+      <rect x="12" y="16" width="5" height="1"  fill={hair} opacity="0.5"/>
+      <rect x="23" y="16" width="5" height="1"  fill={hair} opacity="0.5"/>
+
+      {/* ══ BLUSH ══ */}
+      <rect x="10" y="17" width="5" height="2"  fill="#ffb3b3" opacity="0.35"/>
+      <rect x="25" y="17" width="5" height="2"  fill="#ffb3b3" opacity="0.35"/>
+
+      {/* ══ NOSE (tiny) ══ */}
+      <rect x="19" y="16" width="2" height="1"  fill={skin} style={{filter:'brightness(0.88)'}}/>
+
+      {/* ══ LIPS (full) ══ */}
+      <rect x="14" y="18" width="12" height="1"  fill={pinkD} opacity="0.6"/>
+      <rect x="13" y="19" width="14" height="2"  fill={lip}/>
+      <rect x="14" y="21" width="12" height="1"  fill={pinkD}/>
+      {/* lip shine */}
+      <rect x="15" y="19" width="5"  height="1"  fill="rgba(255,255,255,0.4)"/>
+
+      {/* ══ NECK ══ */}
+      <rect x="16" y="22" width="8"  height="4"  fill={skin}/>
+      {/* necklace */}
+      <rect x="14" y="25" width="12" height="1"  fill={pinkL} opacity="0.7"/>
+      <rect x="19" y="25" width="2"  height="2"  fill={pink} opacity="0.9"/>
+
+      {/* ══ DRESS TOP (fitted) ══ */}
+      <rect x="10" y="26" width="20" height="10" fill={pink}/>
+      {/* bust shape */}
+      <rect x="9"  y="27" width="6"  height="7"  fill={pink}/>
+      <rect x="25" y="27" width="6"  height="7"  fill={pink}/>
+      {/* center seam */}
+      <rect x="19" y="26" width="2"  height="10" fill={pinkD} opacity="0.3"/>
+      {/* sparkle detail */}
+      <rect x="14" y="28" width="2"  height="2"  fill={pinkL} opacity="0.5"/>
+      <rect x="24" y="30" width="2"  height="2"  fill={pinkL} opacity="0.5"/>
+
+      {/* ══ WAIST (thin) ══ */}
+      <rect x="13" y="36" width="14" height="3"  fill={pink}/>
+      <rect x="12" y="37" width="16" height="1"  fill={pinkD} opacity="0.3"/>
+
+      {/* ══ SKIRT (flared, mini) ══ */}
+      <rect x="9"  y="39" width="22" height="7"  fill={pink}/>
+      <rect x="7"  y="42" width="26" height="5"  fill={pink} opacity="0.95"/>
+      <rect x="5"  y="44" width="30" height="3"  fill={pink} opacity="0.8"/>
+      {/* skirt shine folds */}
+      <rect x="12" y="39" width="2"  height="8"  fill={pinkL} opacity="0.2"/>
+      <rect x="20" y="39" width="2"  height="8"  fill={pinkL} opacity="0.2"/>
+      <rect x="28" y="40" width="2"  height="7"  fill={pinkL} opacity="0.15"/>
+      {/* skirt hem */}
+      <rect x="5"  y="46" width="30" height="1"  fill={pinkD} opacity="0.5"/>
+
+      {/* ══ LEFT ARM ══ */}
+      <rect x="3"  y="26" width="5"  height="13" fill={skin}
+        style={{ animation: working ? 'walk-arm-l 0.5s ease-in-out infinite' : undefined, transformOrigin: '5px 26px' }}/>
+      <rect x="2"  y="39" width="4"  height="3"  fill={skin}/>
+      {/* bracelet */}
+      <rect x="2"  y="37" width="5"  height="2"  fill={pink} opacity="0.8"/>
+
+      {/* ══ RIGHT ARM ══ */}
+      <rect x="32" y="26" width="5"  height="13" fill={skin}
+        style={{ animation: working ? 'walk-arm-r 0.5s ease-in-out infinite' : undefined, transformOrigin: '35px 26px' }}/>
+      <rect x="34" y="39" width="4"  height="3"  fill={skin}/>
+      {/* bracelet */}
+      <rect x="33" y="37" width="5"  height="2"  fill={pink} opacity="0.8"/>
+
+      {/* ══ LEGS (long, toned) ══ */}
+      <rect x="13" y="47" width="6"  height="7"  fill={skin}
+        style={{ animation: working ? 'walk-leg-l 0.5s ease-in-out infinite' : undefined, transformOrigin: '16px 47px' }}/>
+      <rect x="21" y="47" width="6"  height="7"  fill={skin}
+        style={{ animation: working ? 'walk-leg-r 0.5s ease-in-out infinite' : undefined, transformOrigin: '24px 47px' }}/>
+
+      {/* ══ HEELS ══ */}
+      {/* platform */}
+      <rect x="12" y="53" width="7"  height="2"  fill={heel}/>
+      <rect x="21" y="53" width="7"  height="2"  fill={heel}/>
+      {/* stiletto */}
+      <rect x="18" y="53" width="1"  height="4"  fill={heel}/>
+      <rect x="27" y="53" width="1"  height="4"  fill={heel}/>
+      {/* toe */}
+      <rect x="12" y="52" width="5"  height="1"  fill={heel} opacity="0.8"/>
+      <rect x="21" y="52" width="5"  height="1"  fill={heel} opacity="0.8"/>
+      {/* shine */}
+      <rect x="13" y="53" width="4"  height="1"  fill="rgba(255,255,255,0.18)"/>
+      <rect x="22" y="53" width="4"  height="1"  fill="rgba(255,255,255,0.18)"/>
+    </svg>
+  )
 }
 
 // ─── Думки Наталі: розкладний панель зі скролом ────────────────────────────
@@ -54,7 +249,7 @@ function ThoughtsPanel({ thoughts }: { thoughts: Thought[] }) {
         onClick={() => setExpanded(v => !v)}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm">🧠</span>
+          <IconBrain size={13} color="rgba(251,191,36,0.7)" />
           <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#fbbf24cc' }}>
             Думки Наталі
           </span>
@@ -249,7 +444,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const terminalRef = useRef<HTMLDivElement>(null)
   const [lastPing, setLastPing] = useState('')
   const [restarting, setRestarting] = useState(false)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'terminal'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'terminal' | 'aistudio'>('dashboard')
   const [tasksOpen, setTasksOpen] = useState(false)
 
   // Nataly processes from services
@@ -345,15 +540,34 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
         >
           {/* Tab switcher */}
           <div className="flex border-b border-white/08 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            {(['dashboard', 'terminal'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 text-xs font-semibold tracking-widest uppercase transition-all ${activeTab === tab ? 'text-green-400 border-b-2 border-green-400' : 'text-white/30 hover:text-white/60'}`}
-              >
-                {tab === 'terminal' ? '⚡ Terminal' : '⬡ Dashboard'}
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex-1 py-3 text-xs font-semibold tracking-widest uppercase transition-all ${activeTab === 'dashboard' ? 'text-green-400 border-b-2 border-green-400' : 'text-white/30 hover:text-white/60'}`}
+            >
+              <span className="flex items-center justify-center gap-1.5">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3"/></svg>
+                Dashboard
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('aistudio')}
+              className={`flex-1 py-3 text-xs font-semibold tracking-widest uppercase transition-all ${activeTab === 'aistudio' ? 'border-b-2' : 'text-white/30 hover:text-white/60'}`}
+              style={activeTab === 'aistudio' ? { color: '#a855f7', borderBottomColor: '#a855f7' } : {}}
+            >
+              <span className="flex items-center justify-center gap-1.5">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.5 3.5l2 2M10.5 10.5l2 2M10.5 3.5l-2 2M5.5 10.5l-2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                AI Studio
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('terminal')}
+              className={`flex-1 py-3 text-xs font-semibold tracking-widest uppercase transition-all ${activeTab === 'terminal' ? 'text-green-400 border-b-2 border-green-400' : 'text-white/30 hover:text-white/60'}`}
+            >
+              <span className="flex items-center justify-center gap-1.5">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M2 4l4 4-4 4M8 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Terminal
+              </span>
+            </button>
             <button
               onClick={onClose}
               className="px-4 text-white/30 hover:text-white/60 hover:bg-white/05 transition-all text-lg"
@@ -364,6 +578,13 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
           {activeTab === 'terminal' && (
             <div className="flex-1 overflow-hidden">
               <TerminalPanel open={open && activeTab === 'terminal'} />
+            </div>
+          )}
+
+          {/* AI Studio Tab */}
+          {activeTab === 'aistudio' && (
+            <div className="flex-1 overflow-y-auto">
+              <AIStudioPanel />
             </div>
           )}
 
@@ -406,11 +627,9 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                     border: `1px solid ${color}22`,
                   }}
                 >
+                  {/* Name row */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🤖</span>
-                      <span className="text-[11px] font-semibold text-white/70">Natali</span>
-                    </div>
+                    <span className="text-[13px] font-bold tracking-wide" style={{ color: '#fff', letterSpacing: '0.04em' }}>Натали</span>
                     <div className="flex items-center gap-1.5">
                       <div
                         className="w-2 h-2 rounded-full"
@@ -422,6 +641,10 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                       />
                       <span className="text-[10px] font-mono" style={{ color }}>{statusLabels[natali.status]}</span>
                     </div>
+                  </div>
+                  {/* Pixel character centered */}
+                  <div className="flex justify-center py-1">
+                    <NatalyChar working={natali.status === 'online'} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[10px]">
@@ -437,7 +660,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
 
                   {natali.claude_processes !== null && (
                     <div className="text-[10px] text-white/30 px-1">
-                      🧠 {natali.claude_processes} Claude process{natali.claude_processes !== 1 ? 'es' : ''} running
+                      <span className="flex items-center gap-1"><IconBrain size={11} color="rgba(255,255,255,0.3)" /> {natali.claude_processes} Claude process{natali.claude_processes !== 1 ? 'es' : ''} running</span>
                     </div>
                   )}
 
@@ -453,7 +676,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                         cursor: restarting ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {restarting ? 'Restarting...' : '⟳ Restart Gateway'}
+                      {restarting ? 'Restarting...' : <span className="flex items-center justify-center gap-1"><IconRefresh size={11} color="#f43f5e" /> Restart Gateway</span>}
                     </button>
                     <button
                       onClick={() => handleRestart('userbot')}
@@ -466,7 +689,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                         cursor: restarting ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {restarting ? '...' : '⟳ Userbot'}
+                      {restarting ? '...' : <span className="flex items-center justify-center gap-1"><IconRefresh size={11} color="#fbbf24" /> Userbot</span>}
                     </button>
                   </div>
 
@@ -483,7 +706,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                         cursor: restarting ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {restarting ? '...' : '⟳ Sync Metrics'}
+                      {restarting ? '...' : <span className="flex items-center justify-center gap-1"><IconRefresh size={11} color="#818cf8" /> Sync Metrics</span>}
                     </button>
                     <button
                       onClick={() => sendCommand('clear_cache')}
@@ -496,7 +719,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                         cursor: restarting ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {restarting ? '...' : '🗑 Clear Cache'}
+                      {restarting ? '...' : <span className="flex items-center justify-center gap-1"><IconTrash size={11} color="#22d3ee" /> Clear Cache</span>}
                     </button>
                   </div>
                 </div>
@@ -604,7 +827,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-white/50">Memory</span>
                   <span style={{ color: getMemoryColor(ramPercent) }}>
-                    {metrics ? `${metrics.ram_used_gb.toFixed(1)} / 32 GB` : '—'}
+                    {metrics ? `${metrics.ram_used_gb.toFixed(1)} / ${metrics.ram_total_gb ?? 32} GB` : '—'}
                   </span>
                 </div>
                 <MetricBar value={ramPercent} color={getMemoryColor(ramPercent)} />
@@ -719,8 +942,8 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
             {/* Nataly Processes */}
             <div className="rounded-xl p-4 space-y-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-[11px] font-medium uppercase tracking-wider" style={{ color: '#a78bfa99' }}>
-                  ⚙ Nataly Processes
+                <h3 className="text-[11px] font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: '#a78bfa99' }}>
+                  <IconGear size={11} color="#a78bfa99" /> Nataly Processes
                 </h3>
                 <span className="text-[9px] text-white/20">{natalyProcesses.length} running</span>
               </div>
