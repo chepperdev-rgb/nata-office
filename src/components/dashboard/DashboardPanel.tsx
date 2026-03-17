@@ -10,6 +10,7 @@ import { useNataliStatus } from '@/hooks/useNataliStatus'
 import { useProcesses } from '@/hooks/useProcesses'
 import { useThoughts } from '@/hooks/useThoughts'
 import { STATIC_AGENTS } from '@/lib/constants'
+import { useWorkerStats } from '@/hooks/useWorkerStats'
 import TerminalPanel from './TerminalPanel'
 import AIStudioPanel from './AIStudioPanel'
 
@@ -441,6 +442,8 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const { natali } = useNataliStatus()
   const { lines: processLines } = useProcesses()
   const { thoughts } = useThoughts()
+  const { stats: workerToday } = useWorkerStats('today')
+  const { stats: workerWeek } = useWorkerStats('week')
   const terminalRef = useRef<HTMLDivElement>(null)
   const [lastPing, setLastPing] = useState('')
   const [restarting, setRestarting] = useState(false)
@@ -996,6 +999,87 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                   </div>
                 )
               })}
+            </div>
+
+            {/* Worker Leaderboard */}
+            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[11px] font-medium text-white/40 uppercase tracking-wider">Agent Leaderboard</h3>
+                <span className="text-[10px] text-white/20">{workerWeek.total_sessions} sessions this week</span>
+              </div>
+
+              {/* Worker of the Day */}
+              {workerToday.worker_of_period && (
+                <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.12)' }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px]">🏆</span>
+                    <span className="text-[10px] font-semibold" style={{ color: '#facc15' }}>WORKER OF THE DAY</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-white/80">
+                      {STATIC_AGENTS.find(a => a.id === workerToday.worker_of_period!.agent_id)?.name || workerToday.worker_of_period.agent_id}
+                    </span>
+                    <span className="text-[10px] text-white/40">
+                      {workerToday.worker_of_period.total_sessions} tasks · {workerToday.worker_of_period.total_tokens >= 1000 ? `${(workerToday.worker_of_period.total_tokens / 1000).toFixed(0)}K` : workerToday.worker_of_period.total_tokens} tokens
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Worker of the Week */}
+              {workerWeek.worker_of_period && (
+                <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.12)' }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px]">⭐</span>
+                    <span className="text-[10px] font-semibold" style={{ color: '#a78bfa' }}>WORKER OF THE WEEK</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-white/80">
+                      {STATIC_AGENTS.find(a => a.id === workerWeek.worker_of_period!.agent_id)?.name || workerWeek.worker_of_period.agent_id}
+                    </span>
+                    <span className="text-[10px] text-white/40">
+                      {workerWeek.worker_of_period.total_sessions} tasks · {workerWeek.worker_of_period.total_tokens >= 1000 ? `${(workerWeek.worker_of_period.total_tokens / 1000).toFixed(0)}K` : workerWeek.worker_of_period.total_tokens} tokens
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Leaderboard table */}
+              {workerWeek.leaderboard.length > 0 && (
+                <div className="space-y-1.5">
+                  {workerWeek.leaderboard.slice(0, 5).map((agent, i) => {
+                    const staticAgent = STATIC_AGENTS.find(a => a.id === agent.agent_id)
+                    const maxTokens = workerWeek.leaderboard[0]?.total_tokens || 1
+                    const barWidth = Math.max(5, (agent.total_tokens / maxTokens) * 100)
+                    return (
+                      <div key={agent.agent_id} className="flex items-center gap-2">
+                        <span className="text-[10px] w-3 text-right" style={{ color: i === 0 ? '#facc15' : '#555' }}>
+                          {i + 1}
+                        </span>
+                        <span className="text-[11px] w-20 truncate" style={{ color: '#999' }}>
+                          {staticAgent?.name || agent.agent_id}
+                        </span>
+                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${barWidth}%`,
+                              background: i === 0 ? '#facc15' : i === 1 ? '#a78bfa' : '#333',
+                            }}
+                          />
+                        </div>
+                        <span className="text-[10px] w-12 text-right" style={{ color: '#555' }}>
+                          {agent.total_tokens >= 1000 ? `${(agent.total_tokens / 1000).toFixed(0)}K` : agent.total_tokens}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {workerWeek.leaderboard.length === 0 && (
+                <p className="text-xs text-white/20 text-center py-2">No agent activity yet</p>
+              )}
             </div>
 
             {/* Activity Feed */}
