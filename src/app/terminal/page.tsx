@@ -81,12 +81,21 @@ export default function TerminalPage() {
 
     term.write('\r\n\x1b[38;5;245m  Connecting to Mac Studio...\x1b[0m\r\n')
 
+    // Client-side keepalive ping every 20s
+    let clientPingTimer: ReturnType<typeof setInterval> | null = null
+
     ws.onopen = () => {
       setConnected(true)
       setError('')
       term.write('\x1b[38;5;245m  Connected.\x1b[0m\r\n\r\n')
       const dims = fitAddon.proposeDimensions()
       if (dims) ws.send(JSON.stringify({ type: 'resize', data: { cols: dims.cols, rows: dims.rows } }))
+      // Start client ping
+      clientPingTimer = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping' }))
+        }
+      }, 20000)
     }
 
     ws.onmessage = (e) => {
@@ -108,11 +117,13 @@ export default function TerminalPage() {
     ws.onerror = () => {
       setError('Connection failed')
       setConnected(false)
+      if (clientPingTimer) clearInterval(clientPingTimer)
       term.write('\r\n\x1b[31m  Connection error.\x1b[0m\r\n')
     }
 
     ws.onclose = () => {
       setConnected(false)
+      if (clientPingTimer) clearInterval(clientPingTimer)
       term.write('\r\n\x1b[38;5;245m  Disconnected.\x1b[0m\r\n')
     }
 

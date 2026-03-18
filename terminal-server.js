@@ -2,7 +2,8 @@
 /**
  * Nataly Terminal Server
  * WebSocket + node-pty → real PTY session on Mac Studio
- * Auth via token header
+ * Auth via token query param
+ * Keepalive ping every 25s to survive Cloudflare tunnel idle timeout
  */
 
 const { WebSocketServer } = require('ws')
@@ -11,25 +12,24 @@ const os = require('os')
 
 const PORT = process.env.TERMINAL_PORT || 3001
 const TOKEN = process.env.TERMINAL_TOKEN || 'nataly-terminal-2026'
+const PING_INTERVAL = 25000 // 25s — Cloudflare cuts at ~100s idle
 
 const wss = new WebSocketServer({ port: PORT })
 
 console.log(`[terminal-server] Listening on ws://localhost:${PORT}`)
-console.log(`[terminal-server] Auth token: ${TOKEN}`)
 
 wss.on('connection', (ws, req) => {
-  // Auth check via ?token= or first message
   const url = new URL(req.url, `http://localhost`)
   const token = url.searchParams.get('token')
 
   if (token !== TOKEN) {
-    console.log(`[terminal-server] Unauthorized connection from ${req.socket.remoteAddress}`)
+    console.log(`[terminal-server] Unauthorized`)
     ws.send(JSON.stringify({ type: 'error', data: 'Unauthorized\r\n' }))
     ws.close(1008, 'Unauthorized')
     return
   }
 
-  console.log(`[terminal-server] Client connected from ${req.socket.remoteAddress}`)
+  console.log(`[terminal-server] Client connected`)
 
   // Spawn PTY
   const shell = process.env.SHELL || '/bin/zsh'
@@ -45,7 +45,29 @@ wss.on('connection', (ws, req) => {
     },
   })
 
-  console.log(`[terminal-server] PTY spawned PID ${ptyProcess.pid}`)
+  console.log(`[terminal-server] PTY PID ${ptyProcess.pid}`)
+
+  // Keepalive ping — prevents Cloudflare from killing idle connections
+  const pingTimer = setInterval(() => {
+    if (ws.readyState === ws.OPEN) {
+      try {
+        ws.ping()
+      } catch {}
+    }
+  }, PING_INTERVAL)
+
+  // Track pong responses to detect dead clients
+  let alive = true
+  ws.on('pong', () => { alive = true })
+
+  const healthCheck = setInterval(() => {
+    if (!alive) {
+      console.log(`[terminal-server] Client not responding, terminating`)
+      ws.terminate()
+      return
+    }
+    alive = false
+  }, 60000) // check every 60s
 
   // PTY → WebSocket
   ptyProcess.onData((data) => {
@@ -55,7 +77,9 @@ wss.on('connection', (ws, req) => {
   })
 
   ptyProcess.onExit(({ exitCode }) => {
-    console.log(`[terminal-server] PTY exited with code ${exitCode}`)
+    console.log(`[terminal-server] PTY exited ${exitCode}`)
+    clearInterval(pingTimer)
+    clearInterval(healthCheck)
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: 'exit', data: exitCode }))
       ws.close()
@@ -70,20 +94,26 @@ wss.on('connection', (ws, req) => {
         ptyProcess.write(data)
       } else if (type === 'resize') {
         ptyProcess.resize(data.cols, data.rows)
+      } else if (type === 'ping') {
+        // Client-side ping — respond
+        ws.send(JSON.stringify({ type: 'pong' }))
       }
     } catch (e) {
-      // raw input fallback
       ptyProcess.write(msg.toString())
     }
   })
 
   ws.on('close', () => {
     console.log(`[terminal-server] Client disconnected, killing PTY ${ptyProcess.pid}`)
+    clearInterval(pingTimer)
+    clearInterval(healthCheck)
     try { ptyProcess.kill() } catch {}
   })
 
   ws.on('error', (err) => {
     console.error(`[terminal-server] WS error:`, err.message)
+    clearInterval(pingTimer)
+    clearInterval(healthCheck)
     try { ptyProcess.kill() } catch {}
   })
 })
