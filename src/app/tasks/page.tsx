@@ -5,10 +5,10 @@ import TaskBoard from '@/components/tasks/TaskBoard'
 
 export default function TasksPage() {
   return (
-    <div className="fixed inset-0 flex flex-col" style={{ background: '#080808' }}>
+    <div className="min-h-screen" style={{ background: '#080808' }}>
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-2.5 shrink-0"
+        className="sticky top-0 z-20 flex items-center justify-between px-4 py-2.5"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: '#0d0d0d' }}
       >
         <div className="flex items-center gap-3">
@@ -27,9 +27,7 @@ export default function TasksPage() {
       </div>
 
       {/* Board */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <TaskBoard />
-      </div>
+      <TaskBoard />
     </div>
   )
 }

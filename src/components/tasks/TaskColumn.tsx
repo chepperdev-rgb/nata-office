@@ -25,7 +25,7 @@ export default function TaskColumn({ status, tasks, onDelete, children }: TaskCo
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col min-h-[200px] sm:min-h-[400px] rounded-2xl transition-colors"
+      className="flex flex-col rounded-2xl transition-colors"
       style={{
         background: isOver ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.015)',
         border: `1px solid ${isOver ? config.color + '40' : 'rgba(255,255,255,0.06)'}`,
@@ -51,7 +51,7 @@ export default function TaskColumn({ status, tasks, onDelete, children }: TaskCo
       {children}
 
       {/* Task cards */}
-      <div className="flex-1 px-2 pb-2 overflow-y-auto">
+      <div className="px-2 pb-2">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
             <TaskCard key={task.id} task={task} onDelete={onDelete} />

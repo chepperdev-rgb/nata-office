@@ -69,7 +69,7 @@ export default function TaskBoard() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -77,7 +77,7 @@ export default function TaskBoard() {
         onDragEnd={handleDragEnd}
       >
         {/* Columns — horizontal on desktop, vertical on mobile */}
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 sm:p-4 overflow-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 sm:p-4">
           {COLUMNS.map(status => (
             <TaskColumn
               key={status}
