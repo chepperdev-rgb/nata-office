@@ -34,17 +34,27 @@ export default function TerminalPage() {
     const term = new Terminal({
       theme: {
         background: '#0a0a0a',
-        foreground: '#00ff88',
-        cursor: '#00ff88',
-        cursorAccent: '#000000',
-        black: '#000000',
-        red: '#ff5555',
-        green: '#50fa7b',
-        yellow: '#f1fa8c',
-        blue: '#6272a4',
-        magenta: '#ff79c6',
-        cyan: '#8be9fd',
-        white: '#f8f8f2',
+        foreground: '#d4d4d4',
+        cursor: '#aeafad',
+        cursorAccent: '#0a0a0a',
+        selectionBackground: '#264f78',
+        selectionForeground: '#ffffff',
+        black: '#1e1e1e',
+        red: '#f44747',
+        green: '#6a9955',
+        yellow: '#dcdcaa',
+        blue: '#569cd6',
+        magenta: '#c586c0',
+        cyan: '#4ec9b0',
+        white: '#d4d4d4',
+        brightBlack: '#808080',
+        brightRed: '#f44747',
+        brightGreen: '#6a9955',
+        brightYellow: '#dcdcaa',
+        brightBlue: '#9cdcfe',
+        brightMagenta: '#c586c0',
+        brightCyan: '#4ec9b0',
+        brightWhite: '#ffffff',
       },
       fontFamily: '"JetBrains Mono", "Fira Code", "Courier New", monospace',
       fontSize: isMobile ? 11 : 13,
@@ -69,12 +79,12 @@ export default function TerminalPage() {
     const ws = new WebSocket(`${TERMINAL_WS_URL}?token=${TERMINAL_TOKEN}`)
     wsRef.current = ws
 
-    term.write('\r\n\x1b[1;32m⚡ Connecting to Mac Studio...\x1b[0m\r\n')
+    term.write('\r\n\x1b[1;36m⚡ Connecting to Mac Studio...\x1b[0m\r\n')
 
     ws.onopen = () => {
       setConnected(true)
       setError('')
-      term.write('\x1b[1;32m✅ Connected!\x1b[0m\r\n\r\n')
+      term.write('\x1b[1;36m✅ Connected\x1b[0m\r\n\r\n')
       const dims = fitAddon.proposeDimensions()
       if (dims) ws.send(JSON.stringify({ type: 'resize', data: { cols: dims.cols, rows: dims.rows } }))
     }
