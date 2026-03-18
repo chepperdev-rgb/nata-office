@@ -96,6 +96,17 @@ export default function Header({ onToggleDashboard, dashboardOpen, workingCount,
       </div>
       <div className="flex items-center gap-3 relative z-10">
         <span className="text-xs text-white/30 font-mono hidden sm:block tracking-wider">{time}</span>
+        <a
+          href="/tasks"
+          className="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all duration-300"
+          style={{
+            background: 'rgba(245,158,11,0.08)',
+            border: '1px solid rgba(245,158,11,0.15)',
+            color: 'rgba(245,158,11,0.7)',
+          }}
+        >
+          Tasks
+        </a>
         <button
           onClick={onToggleDashboard}
           className="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all duration-300"

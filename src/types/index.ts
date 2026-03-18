@@ -53,3 +53,20 @@ export interface ActivityLog {
   action: string
   created_at: string
 }
+
+export type TaskStatus = 'planning' | 'in_progress' | 'done' | 'deleted'
+
+export interface Task {
+  id: string
+  title: string
+  description: string | null
+  status: TaskStatus
+  priority: number
+  assigned_to: string | null
+  project: string | null
+  created_by: string
+  moved_by: string | null
+  position: number
+  created_at: string
+  updated_at: string
+}
