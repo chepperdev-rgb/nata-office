@@ -577,10 +577,24 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
             >×</button>
           </div>
 
-          {/* Terminal Tab */}
+          {/* Terminal Tab — opens dedicated fullscreen page */}
           {activeTab === 'terminal' && (
-            <div className="flex-1 overflow-hidden">
-              <TerminalPanel open={open && activeTab === 'terminal'} />
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="text-4xl">🖥</div>
+                <p className="text-white/40 text-sm">Terminal opens in fullscreen mode</p>
+                <a
+                  href="/terminal"
+                  className="inline-block px-6 py-3 rounded-xl text-sm font-medium transition-all"
+                  style={{
+                    background: 'rgba(0,255,136,0.1)',
+                    border: '1px solid rgba(0,255,136,0.3)',
+                    color: '#00ff88',
+                  }}
+                >
+                  Open Terminal →
+                </a>
+              </div>
             </div>
           )}
 
