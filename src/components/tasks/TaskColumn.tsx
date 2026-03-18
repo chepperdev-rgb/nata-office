@@ -51,7 +51,7 @@ export default function TaskColumn({ status, tasks, onDelete, children }: TaskCo
       {children}
 
       {/* Task cards */}
-      <div className="flex-1 px-2 pb-2 overflow-y-auto" style={{ maxHeight: '60vh' }}>
+      <div className="flex-1 px-2 pb-2 overflow-y-auto">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
             <TaskCard key={task.id} task={task} onDelete={onDelete} />

@@ -69,7 +69,7 @@ export default function TaskBoard() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
