@@ -109,14 +109,24 @@ export default function TaskCard({ task, onDelete, isDragging }: TaskCardProps) 
         {/* Title */}
         <p className="text-[13px] text-white/80 leading-snug mb-1.5">{task.title}</p>
 
-        {/* Footer: assignee + time */}
+        {/* Footer: assignee + timestamps */}
         <div className="flex items-center justify-between">
-          {task.assigned_to ? (
-            <span className="text-[10px] text-white/25">@{task.assigned_to}</span>
-          ) : (
-            <span className="text-[10px] text-white/15">unassigned</span>
-          )}
-          <span className="text-[10px] text-white/20">{timeAgo(task.created_at)}</span>
+          <div className="flex items-center gap-2">
+            {task.assigned_to ? (
+              <span className="text-[10px] text-white/25">@{task.assigned_to}</span>
+            ) : (
+              <span className="text-[10px] text-white/15">—</span>
+            )}
+            {task.created_by === 'natali' && (
+              <span className="text-[9px] px-1 rounded" style={{ background: 'rgba(74,222,128,0.1)', color: 'rgba(74,222,128,0.5)' }}>N</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {task.updated_at !== task.created_at && (
+              <span className="text-[9px] text-white/15" title={`Updated: ${task.updated_at}`}>upd {timeAgo(task.updated_at)}</span>
+            )}
+            <span className="text-[10px] text-white/20" title={`Created: ${task.created_at}`}>{timeAgo(task.created_at)}</span>
+          </div>
         </div>
       </div>
     </div>
