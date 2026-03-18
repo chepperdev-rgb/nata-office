@@ -62,15 +62,18 @@ export async function GET(request: Request) {
     if (row.status === 'error') stats[aid].errors++
   }
 
-  // Sort by total_tokens descending
-  const sorted = Object.values(stats).sort((a, b) => b.total_tokens - a.total_tokens)
+  // Split natali from subs
+  const nataliStats = stats['natali'] || null
+  const subsOnly = Object.values(stats).filter(s => s.agent_id !== 'natali')
+  const sorted = subsOnly.sort((a, b) => b.total_tokens - a.total_tokens)
 
   return NextResponse.json({
     period,
     since,
+    natali: nataliStats,
     worker_of_period: sorted[0] || null,
     leaderboard: sorted.slice(0, 10),
     total_sessions: (data || []).length,
-    total_tokens: sorted.reduce((sum, s) => sum + s.total_tokens, 0),
+    total_tokens: Object.values(stats).reduce((sum, s) => sum + s.total_tokens, 0),
   })
 }

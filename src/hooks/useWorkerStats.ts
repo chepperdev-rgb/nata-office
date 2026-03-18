@@ -15,6 +15,7 @@ interface AgentStats {
 interface WorkerStatsResponse {
   period: string
   since: string
+  natali: AgentStats | null
   worker_of_period: AgentStats | null
   leaderboard: AgentStats[]
   total_sessions: number
@@ -27,7 +28,7 @@ export function useWorkerStats(period = 'today') {
   const { data, error } = useSWR<WorkerStatsResponse>(
     `/api/worker-stats?period=${period}`,
     fetcher,
-    { refreshInterval: 60000, fallbackData: { period, since: '', worker_of_period: null, leaderboard: [], total_sessions: 0, total_tokens: 0 } }
+    { refreshInterval: 60000, fallbackData: { period, since: '', natali: null, worker_of_period: null, leaderboard: [], total_sessions: 0, total_tokens: 0 } }
   )
 
   return { stats: data!, error }

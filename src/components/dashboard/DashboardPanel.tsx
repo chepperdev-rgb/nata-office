@@ -1008,7 +1008,27 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                 <span className="text-[10px] text-white/20">{workerWeek.total_sessions} sessions this week</span>
               </div>
 
-              {/* Worker of the Day */}
+              {/* Natali stats (separate — she's the boss, not competing) */}
+              {workerWeek.natali && (
+                <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.10)' }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px]">🦞</span>
+                    <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>НАТАЛИ (координатор)</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-white/40">
+                      {workerWeek.natali.total_sessions} sessions · {workerWeek.natali.total_tokens >= 1000 ? `${(workerWeek.natali.total_tokens / 1000).toFixed(0)}K` : workerWeek.natali.total_tokens} tokens this week
+                    </span>
+                    {workerToday.natali && (
+                      <span className="text-[10px] text-white/30">
+                        today: {workerToday.natali.total_sessions} / {workerToday.natali.total_tokens >= 1000 ? `${(workerToday.natali.total_tokens / 1000).toFixed(0)}K` : workerToday.natali.total_tokens}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Worker of the Day (subs only) */}
               {workerToday.worker_of_period && (
                 <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.12)' }}>
                   <div className="flex items-center gap-2 mb-1">
@@ -1026,7 +1046,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                 </div>
               )}
 
-              {/* Worker of the Week */}
+              {/* Worker of the Week (subs only) */}
               {workerWeek.worker_of_period && (
                 <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.12)' }}>
                   <div className="flex items-center gap-2 mb-1">
