@@ -79,19 +79,7 @@ export default function TerminalPage() {
     const ws = new WebSocket(`${TERMINAL_WS_URL}?token=${TERMINAL_TOKEN}`)
     wsRef.current = ws
 
-    // Natali ASCII splash
-    term.write('\r\n')
-    term.write('\x1b[38;5;141m       ████       \x1b[0m\r\n')
-    term.write('\x1b[38;5;141m      ██\x1b[38;5;223m██\x1b[38;5;141m██     \x1b[0m\r\n')
-    term.write('\x1b[38;5;141m     ██\x1b[38;5;223m████\x1b[38;5;141m██    \x1b[0m\r\n')
-    term.write('\x1b[38;5;141m     ██\x1b[38;5;223m█\x1b[38;5;17m██\x1b[38;5;223m█\x1b[38;5;141m██    \x1b[0m  \x1b[1;38;5;141mNatali Code\x1b[0m\r\n')
-    term.write('\x1b[38;5;141m      ██\x1b[38;5;223m██\x1b[38;5;141m██     \x1b[0m  \x1b[38;5;245mMac Studio M2 Max · 32GB\x1b[0m\r\n')
-    term.write('\x1b[38;5;81m      ██████      \x1b[0m  \x1b[38;5;245mv3 · agent-office.xyz\x1b[0m\r\n')
-    term.write('\x1b[38;5;81m     ████████     \x1b[0m\r\n')
-    term.write('\x1b[38;5;223m      ██  ██      \x1b[0m\r\n')
-    term.write('\x1b[38;5;141m      ██  ██      \x1b[0m\r\n')
-    term.write('\r\n')
-    term.write('\x1b[1;36m⚡ Connecting...\x1b[0m\r\n')
+    term.write('\r\n\x1b[1;36m⚡ Connecting to Mac Studio...\x1b[0m\r\n')
 
     ws.onopen = () => {
       setConnected(true)
