@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>agent-office.xyz — Comprehensive Audit Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent:        #6366f1;
+    --accent-light:  #e0e7ff;
+    --accent-dark:   #4338ca;
+    --red:           #ef4444;
+    --red-light:     #fee2e2;
+    --orange:        #f97316;
+    --orange-light:  #fff7ed;
+    --yellow:        #eab308;
+    --yellow-light:  #fefce8;
+    --green:         #22c55e;
+    --green-light:   #f0fdf4;
+    --bg:            #ffffff;
+    --bg-subtle:     #f8fafc;
+    --bg-muted:      #f1f5f9;
+    --border:        #e2e8f0;
+    --border-strong: #cbd5e1;
+    --text-primary:  #0f172a;
+    --text-secondary:#475569;
+    --text-muted:    #94a3b8;
+    --radius:        8px;
+    --shadow-sm:     0 1px 2px rgba(0,0,0,.05);
+    --shadow:        0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+    --shadow-lg:     0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── Layout ─────────────────────────────────────────────── */
+  .page { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ─── Header ─────────────────────────────────────────────── */
+  .report-header {
+    background: var(--text-primary);
+    color: #fff;
+    border-radius: 12px;
+    padding: 36px 40px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: var(--accent);
+    opacity: 0.12;
+    border-radius: 50%;
+  }
+  .report-header .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.45);
+    margin-bottom: 10px;
+  }
+  .report-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .report-header .subtitle { color: rgba(255,255,255,.5); font-size: 13px; }
+  .report-header .meta {
+    display: flex; gap: 24px; margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .report-header .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .report-header .meta-item .mk { font-size: 11px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .06em; }
+  .report-header .meta-item .mv { font-size: 15px; font-weight: 600; }
+  .mv.red    { color: #f87171; }
+  .mv.orange { color: #fb923c; }
+  .mv.green  { color: #4ade80; }
+
+  /* ─── Summary cards ──────────────────────────────────────── */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card .card-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+  .card .card-value { font-size: 28px; font-weight: 700; line-height: 1; }
+  .card .card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .card.red    { border-left: 3px solid var(--red);    }
+  .card.orange { border-left: 3px solid var(--orange); }
+  .card.yellow { border-left: 3px solid var(--yellow); }
+  .card.green  { border-left: 3px solid var(--green);  }
+  .card.red    .card-value { color: var(--red);    }
+  .card.orange .card-value { color: var(--orange); }
+  .card.yellow .card-value { color: var(--yellow); }
+  .card.green  .card-value { color: var(--green);  }
+
+  /* ─── Section ────────────────────────────────────────────── */
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .icon {
+    width: 28px; height: 28px;
+    background: var(--accent-light);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-title .icon svg { width: 14px; height: 14px; color: var(--accent); }
+
+  /* ─── Table ──────────────────────────────────────────────── */
+  .table-wrap {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--bg-subtle);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--text-muted); font-weight: 600;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-subtle); }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    background: var(--bg-muted);
+    color: var(--accent-dark);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* ─── Badges ─────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+    padding: 2px 8px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge-red    { background: var(--red-light);    color: #b91c1c; }
+  .badge-orange { background: var(--orange-light); color: #c2410c; }
+  .badge-yellow { background: var(--yellow-light); color: #854d0e; }
+  .badge-green  { background: var(--green-light);  color: #15803d; }
+  .badge-blue   { background: var(--accent-light); color: var(--accent-dark); }
+  .badge-gray   { background: var(--bg-muted);     color: var(--text-secondary); }
+
+  /* ─── Finding cards ──────────────────────────────────────── */
+  .finding-list { display: flex; flex-direction: column; gap: 12px; }
+  .finding {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .finding.critical { border-left: 3px solid var(--red); }
+  .finding.high     { border-left: 3px solid var(--orange); }
+  .finding.medium   { border-left: 3px solid var(--yellow); }
+  .finding.low      { border-left: 3px solid var(--green); }
+  .finding-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .finding-title { font-weight: 600; font-size: 14px; flex: 1; }
+  .finding-body { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+  .finding-body code { font-size: 11px; }
+  .finding-body ul { margin: 8px 0 0 16px; }
+  .finding-body li { margin-bottom: 4px; }
+  .finding-fix {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--bg-subtle);
+    border-radius: 6px;
+    font-size: 12px; color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .finding-fix strong { color: var(--text-primary); }
+
+  /* ─── Recommendation cards ───────────────────────────────── */
+  .rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .rec {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .rec-badge-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .rec-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .rec-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* ─── Status indicator ───────────────────────────────────── */
+  .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0; margin-right: 4px;
+  }
+  .dot-green  { background: var(--green);  }
+  .dot-red    { background: var(--red);    }
+  .dot-orange { background: var(--orange); }
+  .dot-gray   { background: var(--text-muted); }
+
+  /* ─── TOC ────────────────────────────────────────────────── */
+  .toc {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-sm);
+  }
+  .toc-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 12px; }
+  .toc ol { counter-reset: toc; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+  .toc li { counter-increment: toc; }
+  .toc a {
+    font-size: 13px; color: var(--text-secondary);
+    text-decoration: none; display: flex; align-items: center; gap: 8px;
+    padding: 3px 0;
+  }
+  .toc a:hover { color: var(--accent); }
+  .toc a::before { content: counter(toc); font-size: 10px; font-weight: 700; color: var(--text-muted); min-width: 18px; }
+
+  /* ─── Info box ───────────────────────────────────────────── */
+  .info-box {
+    background: var(--accent-light);
+    border: 1px solid #c7d2fe;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px; color: #3730a3;
+    margin-bottom: 16px;
+  }
+
+  /* ─── Monospace block ────────────────────────────────────── */
+  .mono-block {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; line-height: 1.7;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+  .mono-block .c { color: #94a3b8; }
+  .mono-block .kw { color: #818cf8; }
+  .mono-block .str { color: #4ade80; }
+  .mono-block .err { color: #f87171; }
+  .mono-block .warn { color: #fb923c; }
+
+  /* ─── Divider ────────────────────────────────────────────── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ─── Footer ─────────────────────────────────────────────── */
+  .footer { text-align: center; font-size: 12px; color: var(--text-muted); padding-top: 40px; }
+
+  @media (max-width: 700px) {
+    .cards { grid-template-columns: 1fr 1fr; }
+    .rec-grid { grid-template-columns: 1fr; }
+    .toc ol { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══════════════════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════════════════ -->
+  <div class="report-header">
+    <div class="label">Comprehensive Audit Report</div>
+    <h1>agent-office.xyz Dashboard</h1>
+    <div class="subtitle">Full audit of API endpoints, frontend pages, data quality, collector pipeline, and missing features</div>
+    <div class="meta">
+      <div class="meta-item">
+        <span class="mk">Audit Date</span>
+        <span class="mv">2026-03-19</span>
+      </div>
+      <div class="meta-item">
+        <span class="mk">Critical Bugs</span>
+        <span class="mv red">4</span>
+      </div>
+      <div class="meta-item">
+        <span class="mk">High Issues</span>
+        <span class="mv orange">6</span>
+      </div>
+      <div class="meta-item">
+        <span class="mk">Medium Issues</span>
+        <span class="mv" style="color:#fbbf24">7</span>
+      </div>
+      <div class="meta-item">
+        <span class="mk">Missing Features</span>
+        <span class="mv" style="color:#818cf8">8</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TOC
+  ═══════════════════════════════════════════════════════ -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#api-audit">API Endpoints — Data Quality</a></li>
+      <li><a href="#frontend-pages">Frontend Pages Inventory</a></li>
+      <li><a href="#collector">Collector Pipeline Analysis</a></li>
+      <li><a href="#supabase">Supabase Schema (Inferred)</a></li>
+      <li><a href="#critical">Critical Bugs</a></li>
+      <li><a href="#high">High-Severity Issues</a></li>
+      <li><a href="#medium">Medium Issues</a></li>
+      <li><a href="#missing">Missing Features</a></li>
+      <li><a href="#recs">Recommendations Roadmap</a></li>
+    </ol>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="cards">
+    <div class="card red">
+      <div class="card-label">API Endpoints</div>
+      <div class="card-value">9</div>
+      <div class="card-sub">3 with structural issues</div>
+    </div>
+    <div class="card orange">
+      <div class="card-label">Frontend Pages</div>
+      <div class="card-value">3</div>
+      <div class="card-sub">/, /tasks, /terminal</div>
+    </div>
+    <div class="card yellow">
+      <div class="card-label">Collector Scripts</div>
+      <div class="card-value">4</div>
+      <div class="card-sub">1 with env var bug</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">DB Tables</div>
+      <div class="card-value">6</div>
+      <div class="card-sub">+ office_commands unused</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       1. API ENDPOINTS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="api-audit">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5" stroke-linecap="round"/></svg></div>
+      1. API Endpoints — Data Quality
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Method</th>
+            <th>Data Source</th>
+            <th>Freshness</th>
+            <th>Issues Found</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><code>/api/tasks</code></td>
+            <td>GET / POST / PATCH</td>
+            <td><code>office_tasks</code></td>
+            <td>Real-time (Supabase)</td>
+            <td>
+              No DELETE endpoint — soft-delete only via PATCH. PATCH accepts <strong>any field</strong> — no field whitelist, allowing arbitrary column overwrites including <code>created_by</code>, <code>position</code>, etc. No rate limiting.
+            </td>
+            <td><span class="badge badge-orange">Issues</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/tasks/webhook</code></td>
+            <td>POST</td>
+            <td><code>office_tasks</code></td>
+            <td>Real-time</td>
+            <td>
+              <code>poll</code> action filters by <code>moved_by = 'dan'</code> but there is no index on this column — full table scan on every cron call. No timestamp coercion validation on <code>since</code> parameter.
+            </td>
+            <td><span class="badge badge-yellow">Warn</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/agents</code></td>
+            <td>GET</td>
+            <td><code>office_agent_status</code></td>
+            <td>Staleness = last collector push (max 1 min)</td>
+            <td>
+              <strong>No <code>tasks_completed</code> field returned</strong> — the audit spec expected this but the DB row has no such column. <code>model</code> column is stored as bare string (e.g. <code>"sonnet"</code>), not the full model ID, so agent popups show simplified model names without issue — but it prevents accurate cost calculation. <strong>Design agents (viktor, pixel, marka, etc.) are in STATIC_AGENTS but never pushed to DB by the collector</strong> because <code>parse-agent-sessions.py</code> hardcodes only 15 legacy agent IDs.
+            </td>
+            <td><span class="badge badge-red">Bug</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/activity</code></td>
+            <td>GET</td>
+            <td><code>office_activity_log</code></td>
+            <td>Collector-driven (every 1 min)</td>
+            <td>
+              Returns last 10 rows only (<code>.limit(10)</code>). The <code>/api/processes</code> route (used by TerminalPanel) returns the same data with limit 30 and re-shapes it — <strong>two routes reading the same table differently, causing inconsistent display</strong>. The activity feed is <strong>partially synthetic</strong>: when no agents are working, the collector cycles through 5 canned messages based on <code>minute % 5</code>. Dan cannot distinguish real activity from heartbeat noise.
+            </td>
+            <td><span class="badge badge-red">Bug</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/worker-stats</code></td>
+            <td>GET</td>
+            <td><code>office_agent_sessions</code></td>
+            <td>Collector-driven (every 1 min via sessions)</td>
+            <td>
+              Correctly aggregates by agent. However <code>import-agent-history.py</code> <strong>estimates tokens as <code>file_size / 4</code></strong> — a rough heuristic that does not match actual API token counts. Token numbers on dashboard are approximations, not actuals. No cost conversion (tokens → USD) is performed anywhere.
+            </td>
+            <td><span class="badge badge-yellow">Warn</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/services</code></td>
+            <td>GET</td>
+            <td><code>office_service_status</code></td>
+            <td>Collector-driven</td>
+            <td>
+              Returns all rows including <code>nataly_processes</code> (stored as a fake service). Frontend calls <code>useServices</code> for service list and separately calls <code>useNataliStatus</code> which re-queries the same table — <strong>double DB query for the same data</strong> on every dashboard open.
+            </td>
+            <td><span class="badge badge-yellow">Warn</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/agent-history</code></td>
+            <td>GET</td>
+            <td><code>office_agent_sessions</code></td>
+            <td>Collector-driven (every 5 min via import scripts)</td>
+            <td>
+              Uses the singleton <code>supabase</code> client from <code>/lib/supabase.ts</code> while all other API routes create their own <code>createClient()</code> instances inline — <strong>inconsistent client pattern</strong>, not critical but a maintenance hazard. Default period is <code>week</code>; very active agents will quickly hit the <code>limit(20)</code> cap returning an incomplete picture.
+            </td>
+            <td><span class="badge badge-yellow">Warn</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/metrics</code></td>
+            <td>GET</td>
+            <td><code>office_system_metrics</code></td>
+            <td>Collector-driven (every 1 min)</td>
+            <td>
+              <strong>Race condition on write</strong>: <code>collector/route.ts</code> deletes all rows via <code>.delete().neq('updated_at', '')</code> then inserts a fresh row. Between the DELETE and INSERT there is a window where <code>/api/metrics</code> returns a <code>404 / PGRST116</code> error (single row query returns no rows). UI silently swallows this because <code>useMetrics</code> has no fallback data.
+            </td>
+            <td><span class="badge badge-red">Critical</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/natali-status</code></td>
+            <td>GET</td>
+            <td><code>office_service_status</code> + <code>office_system_metrics</code></td>
+            <td>Derived from collector data</td>
+            <td>
+              Correctly marks status as <code>offline</code> if collector has not pushed in 5 min. <code>claude_processes</code> is read from <code>gateway.details</code> — but the collector stores <code>claude_processes</code> under the <code>gateway</code> service entry's <code>details</code> JSON, while <code>natali-status</code> reads <code>gateway?.details?.claude_processes</code>. This works but is fragile if the collector service ID ever changes.
+            </td>
+            <td><span class="badge badge-green">OK</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/collector</code></td>
+            <td>POST</td>
+            <td>Writes all tables</td>
+            <td>Receives push every 1 min</td>
+            <td>
+              <strong>No <code>nataly_processes</code> data is sent to the frontend</strong> — it is stored in <code>office_service_status.details</code> but the services hook and UI never display this parsed process list. All that CPU/process data is silently buried. Also: no HMAC signature on the collector token — a leaked <code>COLLECTOR_SECRET</code> allows arbitrary data injection.
+            </td>
+            <td><span class="badge badge-orange">Issues</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/command</code></td>
+            <td>POST</td>
+            <td><code>office_commands</code></td>
+            <td>Write-only queue</td>
+            <td>
+              <strong>Dead-end queue</strong> — commands are inserted into <code>office_commands</code> table but nothing polls or executes them. The collector script never reads this table. Commands silently disappear. The 4 allowed commands (<code>restart_gateway</code>, <code>restart_userbot</code>, <code>run_collector</code>, <code>clear_cache</code>) are unreachable.
+            </td>
+            <td><span class="badge badge-red">Critical</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/restart</code></td>
+            <td>POST</td>
+            <td>Forwards to <code>COLLECTOR_INTERNAL_URL</code></td>
+            <td>Remote invoke</td>
+            <td>
+              <code>COLLECTOR_INTERNAL_URL</code> is <strong>not set in <code>.env.local</code></strong>. Every restart call returns <code>503 — COLLECTOR_INTERNAL_URL not configured</code>. The Restart button in the dashboard is currently non-functional.
+            </td>
+            <td><span class="badge badge-red">Critical</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/nataly-thought</code></td>
+            <td>GET / POST</td>
+            <td><code>office_activity_log</code></td>
+            <td>Real-time (event-driven)</td>
+            <td>
+              POST uses <code>x-collector-secret</code> header, GET is <strong>completely unauthenticated</strong>. Any external party can read Natali's internal thoughts/actions. GET returns last 30 entries from <code>agent_id = 'natali'</code>. The <code>useThoughts</code> hook polls every 5 seconds — the most aggressive polling interval on the dashboard, generating 12 Supabase queries/minute just for this hook.
+            </td>
+            <td><span class="badge badge-orange">Issues</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/generate</code></td>
+            <td>POST</td>
+            <td>fal.ai FLUX Pro API</td>
+            <td>Real-time generation</td>
+            <td>
+              <code>FAL_KEY</code> is not present in <code>.env.local</code> — <strong>image generation will fail with an unhandled error</strong> (env var is <code>undefined</code>, auth header becomes <code>"Key undefined"</code>). No graceful fallback. Also: MODELS array in AIStudioPanel has only 1 model (flux-schnell) but the code calls <code>fal-ai/flux-pro/v1.1-ultra</code> — <strong>model name mismatch</strong> between UI label and API call.
+            </td>
+            <td><span class="badge badge-red">Critical</span></td>
+          </tr>
+
+          <tr>
+            <td><code>/api/comfy-status</code></td>
+            <td>GET</td>
+            <td>ComfyUI <code>localhost:8188</code></td>
+            <td>Real-time probe</td>
+            <td>
+              AIStudioPanel hardcodes <code>setComfyStatus('online')</code> immediately on mount (<code>useEffect(() => { setComfyStatus('online') }, [])</code>), <strong>never actually calling this API</strong>. The status dot always shows green regardless of ComfyUI state. This endpoint is effectively dead.
+            </td>
+            <td><span class="badge badge-orange">Issues</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       2. FRONTEND PAGES
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="frontend-pages">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 6h12" stroke-linecap="round"/></svg></div>
+      2. Frontend Pages Inventory
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Component</th>
+            <th>What it does</th>
+            <th>Data hooks used</th>
+            <th>Issues</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/</code></td>
+            <td><code>page.tsx</code><br>+ <code>OfficeGrid</code><br>+ <code>DashboardPanel</code><br>+ <code>AgentPopup</code></td>
+            <td>Office grid showing 7 rooms with agent desks. Clicking an agent opens AgentPopup. Header button opens slide-in DashboardPanel.</td>
+            <td><code>useAgents</code> (30s)</td>
+            <td>
+              Agents from the 10 Design Studio agents (<code>viktor</code>, <code>pixel</code>, etc.) are in <code>STATIC_AGENTS</code> and shown on the grid, but are <strong>never updated by the collector</strong> — they always show as idle. The BOSS_IDS set in AgentPopup does not include any design agents. AgentPopup AGENT_ROOM_COLORS map has no entries for design agents — they all fall through to <code>#888</code> gray.
+            </td>
+          </tr>
+          <tr>
+            <td><code>/</code> → DashboardPanel</td>
+            <td><code>DashboardPanel.tsx</code> (~700+ lines)</td>
+            <td>Slide-in panel with 5 tabs: Status, Agents, Stats, Terminal, AI Studio. Shows Natali status, system metrics, service health, worker stats, activity log, agent leaderboard.</td>
+            <td><code>useMetrics</code> (30s), <code>useServices</code> (30s), <code>useActivity</code> (30s), <code>useAgents</code> (30s), <code>useNataliStatus</code> (15s), <code>useProcesses</code> (10s), <code>useThoughts</code> (5s), <code>useWorkerStats</code> (60s)</td>
+            <td>
+              <strong>8 simultaneous polling hooks</strong> active whenever dashboard is open. Aggregated poll rate: ~15 Supabase requests/minute minimum, up to 30+. No request deduplication or batching. <code>useActivity</code> returns only 10 rows but <code>useProcesses</code> fetches 30 rows from the same table — redundant. No loading skeleton for metrics section; if metrics row is missing (see race condition bug), the CPU/RAM bars show blank.
+            </td>
+          </tr>
+          <tr>
+            <td><code>/tasks</code></td>
+            <td><code>TaskBoard.tsx</code><br>+ <code>TaskColumn</code><br>+ <code>TaskCard</code></td>
+            <td>3-column Kanban board (Planning / In Progress / Done) with drag-and-drop via @dnd-kit. Create new tasks inline. Soft-delete with restore. Syncs every 10 seconds.</td>
+            <td><code>useTasks</code> (10s)</td>
+            <td>
+              No <strong>assignee filter</strong> — if 50 tasks pile up, no way to filter by agent or project. No <strong>priority display</strong> — priority field exists in DB (1–5) but TaskCard does not render it. Drag-and-drop reorders visually but <strong>does not update the <code>position</code> field in DB</strong> when reordering within the same column — only status changes are persisted. No tasks page link in the main header; access requires knowing the <code>/tasks</code> URL or finding the link in the dashboard.
+            </td>
+          </tr>
+          <tr>
+            <td><code>/terminal</code></td>
+            <td><code>terminal/page.tsx</code></td>
+            <td>Full-page xterm.js terminal connecting via WebSocket to <code>wss://terminal.agent-office.xyz</code>.</td>
+            <td>None (WebSocket)</td>
+            <td>
+              <strong>Terminal WS URL is configured</strong> (<code>wss://terminal.agent-office.xyz</code>) but there is no evidence that the WebSocket server is running — no corresponding server script in <code>.agent-scripts/</code>. If the WS server is down, the terminal shows "Connection failed" with no retry logic (manual Reconnect button only). The TerminalPanel (embedded in DashboardPanel) is a separate component from the full-page terminal — they <strong>duplicate identical WebSocket + xterm code</strong> (~170 lines each) instead of sharing a component.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       3. COLLECTOR PIPELINE
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="collector">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v4M8 10v4M2 8h4M10 8h4" stroke-linecap="round"/><circle cx="8" cy="8" r="2"/></svg></div>
+      3. Collector Pipeline Analysis
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Script</th>
+            <th>Trigger</th>
+            <th>What it does</th>
+            <th>Issues</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>agent-metrics-collector.sh</code></td>
+            <td>Cron every 1 min</td>
+            <td>Collects CPU/RAM/disk, detects agent activity via <code>openclaw sessions --active 360</code>, checks userbot/gateway processes, builds JSON payload, POSTs to <code>/api/collector</code>. Every 5 min also runs <code>import-agent-history.py</code> and <code>sync-tasks-to-board.py</code>.</td>
+            <td>
+              <code>set -euo pipefail</code> at the top — <strong>any command failure exits the entire script silently</strong>. If <code>openclaw sessions</code> fails (e.g., gateway restart), the script exits before sending metrics. <code>pgrep -f "claude.*${AGENT_ID}"</code> pattern matching is unreliable — it will match any process with "claude" and the agent ID string anywhere in its path (e.g., file paths containing the agent ID).
+            </td>
+          </tr>
+          <tr>
+            <td><code>parse-agent-sessions.py</code></td>
+            <td>Called inline by collector.sh</td>
+            <td>Maps OpenClaw sessions to dashboard agent IDs via keyword matching on session key + task text. Builds agent_statuses and session_records arrays.</td>
+            <td>
+              Hardcodes <strong>15 agent IDs</strong> — the 10 Design Studio agents are missing entirely. Sessions that can't be mapped fall back to <code>'natali'</code>, inflating her session count. The 2-minute activity window (<code>age_ms &lt; 120000</code>) for "working" status means an agent that finished 3 minutes ago still shows as idle even mid-task. "Cron heartbeat" sessions with <code>tokens_out &lt; 50</code> are skipped — but the threshold is arbitrary and may skip legitimate short tasks.
+            </td>
+          </tr>
+          <tr>
+            <td><code>import-agent-history.py</code></td>
+            <td>Every 5 min via collector.sh</td>
+            <td>Scans <code>~/.claude/projects/**/subagents/agent-*.jsonl</code>, estimates token counts from file size, upserts to <code>office_agent_sessions</code>.</td>
+            <td>
+              <strong>Critical env var bug</strong>: reads <code>SUPABASE_URL</code> and <code>SUPABASE_KEY</code> from environment, but <code>collector.sh</code> exports them as:<br>
+              <code>SUPABASE_URL=$(grep NEXT_PUBLIC_SUPABASE_URL ...)</code> and<br>
+              <code>SUPABASE_KEY=$(grep SUPABASE_SERVICE_ROLE_KEY ...)</code>.<br>
+              The variable names differ (<code>SUPABASE_URL</code> vs the script's expected format). If <code>grep</code> returns nothing (empty file / path issue), the script prints "Missing SUPABASE_URL or SUPABASE_KEY" and exits silently. No logging. Token count is <strong>estimated as <code>file_size / 4</code></strong> — completely wrong for compressed/binary content.
+            </td>
+          </tr>
+          <tr>
+            <td><code>sync-tasks-to-board.py</code></td>
+            <td>Every 5 min via collector.sh</td>
+            <td>Parses <code>memory/YYYY-MM-DD.md</code>, <code>WORKING.md</code>, <code>TASK_JOURNAL.md</code>. Creates new tasks on the board via <code>/api/tasks/webhook</code>. Deduplicates by title (case-insensitive).</td>
+            <td>
+              Sends hardcoded token <code>"nataly-collector-2026"</code> instead of the env var <code>AUTH_TOKEN</code>. This works currently since the secret matches, but bypasses any secret rotation. The project detection heuristic (<code>detect_project</code>) only recognizes 3 projects (RSE, SoulProfile, AgentOffice) — all other tasks get <code>null</code> project. The <code>is_junk</code> filter is aggressive and may silently drop valid tasks containing filtered substrings.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box">
+      <strong>Crontab status unknown:</strong> The Bash tool is unavailable in this session, so <code>crontab -l</code> could not be executed. Verify the cron entry exists: <code>* * * * * /bin/bash /Users/a1/.agent-scripts/agent-metrics-collector.sh &gt;&gt; /tmp/collector.log 2&gt;&amp;1</code>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       4. SUPABASE SCHEMA
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="supabase">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v4c0 1.1 2.24 2 5 2s5-.9 5-2V4"/><path d="M3 8v4c0 1.1 2.24 2 5 2s5-.9 5-2V8"/></svg></div>
+      4. Supabase Schema (Inferred from Code)
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Table</th>
+            <th>Key Columns (inferred)</th>
+            <th>Written by</th>
+            <th>Read by</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>office_tasks</code></td>
+            <td><code>id</code>, <code>title</code>, <code>description</code>, <code>status</code>, <code>priority</code>, <code>position</code>, <code>project</code>, <code>assigned_to</code>, <code>created_by</code>, <code>moved_by</code>, <code>created_at</code>, <code>updated_at</code></td>
+            <td>Dashboard UI, Natali webhook, sync-tasks script</td>
+            <td><code>/api/tasks</code>, <code>/api/tasks/webhook</code></td>
+            <td>Missing index on <code>moved_by</code>. Missing index on <code>status</code> for column filtering. <code>position</code> not updated on intra-column drag.</td>
+          </tr>
+          <tr>
+            <td><code>office_agent_status</code></td>
+            <td><code>agent_id</code> (PK), <code>display_name</code>, <code>role</code>, <code>model</code>, <code>room</code>, <code>status</code>, <code>pid</code>, <code>current_task</code>, <code>last_active</code>, <code>updated_at</code></td>
+            <td>Collector → <code>/api/collector</code></td>
+            <td><code>/api/agents</code></td>
+            <td>No <code>tasks_completed</code> column. 10 Design Studio agents never inserted. <code>model</code> stores short name not full model ID.</td>
+          </tr>
+          <tr>
+            <td><code>office_activity_log</code></td>
+            <td><code>id</code> (serial), <code>agent_id</code>, <code>action</code>, <code>created_at</code></td>
+            <td>Collector, <code>/api/nataly-thought</code></td>
+            <td><code>/api/activity</code>, <code>/api/processes</code>, <code>/api/nataly-thought</code></td>
+            <td>Capped at 200 rows by collector pruning. Real events mixed with synthetic heartbeat noise. No <code>type</code> column — type encoded as emoji prefix in <code>action</code>.</td>
+          </tr>
+          <tr>
+            <td><code>office_agent_sessions</code></td>
+            <td><code>id</code>, <code>session_id</code> (unique), <code>session_key</code>, <code>agent_id</code>, <code>task_summary</code>, <code>model</code>, <code>tokens_in</code>, <code>tokens_out</code>, <code>tokens_total</code>, <code>status</code>, <code>started_at</code>, <code>finished_at</code>, <code>source</code>, <code>updated_at</code></td>
+            <td>Collector (OpenClaw sessions + import-agent-history.py)</td>
+            <td><code>/api/agent-history</code>, <code>/api/worker-stats</code></td>
+            <td>Token counts partially estimated from file size. Two sources (openclaw + claude-code subagents) with different session ID formats. No dedup across sources beyond session_id uniqueness.</td>
+          </tr>
+          <tr>
+            <td><code>office_service_status</code></td>
+            <td><code>service_id</code> (PK), <code>display_name</code>, <code>status</code>, <code>details</code> (jsonb), <code>updated_at</code></td>
+            <td>Collector</td>
+            <td><code>/api/services</code>, <code>/api/natali-status</code></td>
+            <td><code>nataly_processes</code> stored here as fake service row — a design smell. <code>details</code> JSONB holds process list but frontend never displays it.</td>
+          </tr>
+          <tr>
+            <td><code>office_system_metrics</code></td>
+            <td><code>cpu_percent</code>, <code>cpu_cores</code>, <code>ram_percent</code>, <code>ram_used_gb</code>, <code>ram_total_gb</code>, <code>disk_percent</code>, <code>uptime_seconds</code>, <code>updated_at</code></td>
+            <td>Collector</td>
+            <td><code>/api/metrics</code>, <code>/api/natali-status</code></td>
+            <td>DELETE-all + INSERT pattern causes brief outage window every minute. Should use UPSERT on a fixed ID row instead.</td>
+          </tr>
+          <tr>
+            <td><code>office_commands</code></td>
+            <td><code>id</code>, <code>command</code>, <code>status</code> (inferred)</td>
+            <td><code>/api/command</code></td>
+            <td><em>Nothing</em></td>
+            <td><strong>Dead table.</strong> Commands queued here are never consumed. The Mac Studio collector does not poll this table.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       5. CRITICAL BUGS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="critical">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L2 13h12L8 2z" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6v4M8 11.5v.5" stroke-linecap="round"/></svg></div>
+      5. Critical Bugs
+    </div>
+    <div class="finding-list">
+
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-red">CRITICAL</span>
+          <div class="finding-title">Metrics Race Condition — Dashboard Goes Blank Every Minute</div>
+        </div>
+        <div class="finding-body">
+          <code>/api/collector</code> deletes ALL rows from <code>office_system_metrics</code> then inserts one fresh row. The <code>/api/metrics</code> route uses <code>.single()</code> which returns a Supabase <code>PGRST116</code> error when the table is momentarily empty. The <code>useMetrics</code> hook has no <code>fallbackData</code>, so during that ~10ms window the CPU/RAM bars on the dashboard blank out or flash an error state on every collector run (60 times/hour).
+          <div class="finding-fix"><strong>Fix:</strong> Replace DELETE+INSERT with <code>.upsert({ id: 1, ...body.system, updated_at: now }, { onConflict: 'id' })</code> using a fixed row ID. Requires adding an <code>id</code> column (e.g., serial or constant <code>1</code>) to the table, or using any stable unique field like <code>updated_at</code> is already used but wrong for conflict resolution. Alternatively, use <code>fallbackData: defaultMetrics</code> in <code>useMetrics</code> as a short-term mitigation.</div>
+        </div>
+      </div>
+
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-red">CRITICAL</span>
+          <div class="finding-title">/api/restart and /api/command Are Completely Non-Functional</div>
+        </div>
+        <div class="finding-body">
+          <strong>restart:</strong> <code>COLLECTOR_INTERNAL_URL</code> is not set in <code>.env.local</code>. Every POST to <code>/api/restart</code> returns <code>503</code>. The Restart button in DashboardPanel has never worked in production.<br><br>
+          <strong>command:</strong> The <code>office_commands</code> table receives inserts but nothing ever reads from it. There is no polling loop in the collector or any other script. All 4 allowed commands (<code>restart_gateway</code>, <code>restart_userbot</code>, <code>run_collector</code>, <code>clear_cache</code>) are dead letters.
+          <div class="finding-fix"><strong>Fix (restart):</strong> Add <code>COLLECTOR_INTERNAL_URL=http://localhost:PORT</code> to <code>.env.local</code>, expose an HTTP endpoint on the collector that accepts restart commands.<br><strong>Fix (command):</strong> Add a poll loop to <code>agent-metrics-collector.sh</code> that queries <code>office_commands WHERE status = 'pending'</code>, executes the command, and updates status to <code>executed</code>.</div>
+        </div>
+      </div>
+
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-red">CRITICAL</span>
+          <div class="finding-title">AI Studio — FAL_KEY Missing, Model Label/API Mismatch</div>
+        </div>
+        <div class="finding-body">
+          <code>FAL_KEY</code> is not in <code>.env.local</code> (or Vercel env vars). Every image generation request will fail with <code>Authorization: Key undefined</code>. The error from fal.ai (<code>401</code>) propagates to the UI as a generic error string.<br><br>
+          Additionally, the AIStudioPanel displays <strong>"FLUX.1 Schnell FP8"</strong> as the model name but the <code>/api/generate</code> route calls <code>fal-ai/flux-pro/v1.1-ultra</code> — a completely different, more expensive model. These are not the same model; if FAL_KEY were present, costs would be higher than the UI implies.
+          <div class="finding-fix"><strong>Fix:</strong> Add <code>FAL_KEY=...</code> to <code>.env.local</code> and to Vercel environment variables. Align the model IDs — either update the API route to use <code>fal-ai/flux/schnell</code> or update the MODELS array to show "FLUX Pro v1.1 Ultra".</div>
+        </div>
+      </div>
+
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-red">CRITICAL</span>
+          <div class="finding-title">PATCH /api/tasks Accepts Arbitrary Column Overwrites</div>
+        </div>
+        <div class="finding-body">
+          The PATCH handler does <code>const { id, ...updates } = body</code> and passes all remaining fields directly to <code>.update(updates)</code>. An attacker (or a bug in Natali's webhook code) can overwrite any column including <code>created_by</code>, <code>created_at</code>, <code>position</code>, or even inject SQL-unsafe values if Supabase ever relaxes its type checking. This is an injection surface even from trusted callers making mistakes.
+          <div class="finding-fix"><strong>Fix:</strong> Whitelist the allowed update fields: <code>const allowed = ['title','description','status','priority','project','assigned_to','position','moved_by']; const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));</code></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       6. HIGH ISSUES
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="high">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 10.5v.5" stroke-linecap="round"/></svg></div>
+      6. High-Severity Issues
+    </div>
+    <div class="finding-list">
+
+      <div class="finding high">
+        <div class="finding-header">
+          <span class="badge badge-orange">HIGH</span>
+          <div class="finding-title">10 Design Studio Agents Never Show Real Status</div>
+        </div>
+        <div class="finding-body">
+          STATIC_AGENTS defines 10 Design Studio agents (viktor, pixel, marka, sait, ruh, prostir, systema, koddesign, kontenta, doslidnyk) but <code>parse-agent-sessions.py</code> only processes 15 legacy agent IDs. None of the design agents are detected or pushed to <code>office_agent_status</code>. They always appear idle in the office grid and their <code>AgentPopup</code> history tab shows 0 sessions. Their agent cards also lack color mapping in <code>AGENT_ROOM_COLORS</code>.
+          <div class="finding-fix"><strong>Fix:</strong> Add the 10 design agent IDs to the <code>all_agents</code> list in <code>parse-agent-sessions.py</code> and add keyword mappings. Add color entries to <code>AGENT_ROOM_COLORS</code> in AgentPopup.</div>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-header">
+          <span class="badge badge-orange">HIGH</span>
+          <div class="finding-title">import-agent-history.py Has Silent Env Var Bug</div>
+        </div>
+        <div class="finding-body">
+          The script reads <code>os.environ.get('SUPABASE_URL')</code> and <code>os.environ.get('SUPABASE_KEY')</code>. The calling shell script exports them as:
+          <div class="mono-block"><span class="kw">SUPABASE_URL</span>=<span class="str">$(grep NEXT_PUBLIC_SUPABASE_URL /Users/a1/Projects/.../env.local | cut -d= -f2)</span>
+<span class="kw">SUPABASE_KEY</span>=<span class="str">$(grep SUPABASE_SERVICE_ROLE_KEY /Users/a1/Projects/.../env.local | cut -d= -f2)</span></div>
+          If the path is wrong or grep returns empty, the script prints "Missing SUPABASE_URL or SUPABASE_KEY" to stdout (which is redirected to <code>/dev/null</code>) and silently does nothing. Agent history from Claude Code subagent files never gets imported, so agent session history on the dashboard may be stale or empty.
+          <div class="finding-fix"><strong>Fix:</strong> Add error logging to stderr, use <code>2&gt;&amp;1 | tee /tmp/import-agent-history.log</code> in the cron call, and validate env vars at the shell level before calling the Python script.</div>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-header">
+          <span class="badge badge-orange">HIGH</span>
+          <div class="finding-title">Synthetic Heartbeat Noise Pollutes Activity Feed</div>
+        </div>
+        <div class="finding-body">
+          When no agents are working, the collector inserts one of 5 canned messages into <code>office_activity_log</code> every minute (rotated by <code>minute % 5</code>). Examples: "All agents on standby — ready for tasks", "System heartbeat — all services nominal". These are indistinguishable from real events in the activity feed. Dan cannot tell from the dashboard whether Natali actually took an action or whether it's just the heartbeat. The table fills with ~288 synthetic rows per hour during idle periods.
+          <div class="finding-fix"><strong>Fix:</strong> Add a <code>type</code> column to <code>office_activity_log</code> (or use a separate <code>office_heartbeats</code> table). Filter synthetic events out of the <code>/api/activity</code> response, or at minimum render them differently in the UI (dimmed, no icon).</div>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-header">
+          <span class="badge badge-orange">HIGH</span>
+          <div class="finding-title">ComfyUI Status Indicator Hardcoded as "Online" — Always Lies</div>
+        </div>
+        <div class="finding-body">
+          In <code>AIStudioPanel.tsx</code>: <code>useEffect(() => { setComfyStatus('online') }, [])</code>. The <code>/api/comfy-status</code> endpoint is never called. The green status dot next to "fal.ai · ~2 сек" always shows "online" regardless of whether ComfyUI or fal.ai is actually reachable. This is a trust issue — Dan sees a false green status.
+          <div class="finding-fix"><strong>Fix:</strong> Call <code>/api/comfy-status</code> on mount and on a 30s interval. Display actual status. Since the app now uses fal.ai (not ComfyUI), either rename/repurpose this status check or probe fal.ai directly.</div>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-header">
+          <span class="badge badge-orange">HIGH</span>
+          <div class="finding-title">Natali Thought Feed — Unauthenticated GET Endpoint</div>
+        </div>
+        <div class="finding-body">
+          <code>GET /api/nataly-thought</code> requires no authentication. Natali's internal action log (thoughts, errors, completed actions) is publicly readable by anyone who knows the URL. This includes sensitive task context, error messages, and operational details about the agent system.
+          <div class="finding-fix"><strong>Fix:</strong> Add the same <code>x-collector-secret</code> / Bearer token check to the GET handler, or serve thought data only through the existing authenticated <code>/api/activity</code> route.</div>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-header">
+          <span class="badge badge-orange">HIGH</span>
+          <div class="finding-title">8 Parallel Polling Hooks on Dashboard Open — Supabase Rate Risk</div>
+        </div>
+        <div class="finding-body">
+          When DashboardPanel is open: useThoughts (5s) + useProcesses (10s) + useTasks (10s) + useNataliStatus (15s) + useMetrics (30s) + useServices (30s) + useActivity (30s) + useAgents (30s) + useWorkerStats (60s). That's a minimum of ~18 Supabase REST requests per minute per open session. With 2+ concurrent Telegram sessions (Dan on multiple devices), this compounds quickly. Supabase free tier has a 500 requests/sec limit but the pattern also generates unnecessary load and latency.
+          <div class="finding-fix"><strong>Fix:</strong> Consolidate the Status tab into a single <code>/api/dashboard</code> endpoint that aggregates metrics + services + natali-status + activity in one query. Replace independent SWR hooks with a shared cache key. Minimum viable: merge <code>useActivity</code> and <code>useProcesses</code> since they read the same table.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       7. MEDIUM ISSUES
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="medium">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      7. Medium Issues
+    </div>
+    <div class="finding-list">
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">Drag-and-Drop Does Not Persist Position Reordering</div>
+        </div>
+        <div class="finding-body">
+          The <code>handleDragEnd</code> in TaskBoard only calls <code>moveTask()</code> when the task moves to a different column. When a task is reordered within the same column, the over-task's column is compared and found equal — so nothing is saved. The visual order updates locally (React state) but resets to server order on the next 10-second SWR refresh.
+          <div class="finding-fix"><strong>Fix:</strong> On same-column drop, calculate new position and call <code>updateTask(id, { position: newPosition })</code>. Use fractional positioning (Lexorank / midpoint) to avoid re-numbering all tasks.</div>
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">Task Priority Field Is Stored But Never Displayed</div>
+        </div>
+        <div class="finding-body">
+          All tasks have a <code>priority</code> field (1–5, default 2) in the database. The <code>Task</code> type includes it. But <code>TaskCard.tsx</code> and <code>TaskColumn.tsx</code> never render it. Dan cannot see which tasks are urgent vs. low priority on the board.
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">No Tasks Board Link in Main Navigation Header</div>
+        </div>
+        <div class="finding-body">
+          The <code>/tasks</code> page exists and is fully functional, but the main Header component has no link to it. Access requires knowing the URL or finding a link buried inside DashboardPanel (if one exists there). This is a discoverability problem that means Dan may not use task management from mobile.
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">Duplicate Terminal Code (TerminalPanel vs. /terminal Page)</div>
+        </div>
+        <div class="finding-body">
+          <code>TerminalPanel.tsx</code> and <code>terminal/page.tsx</code> are 90% identical — same xterm.js setup, same WebSocket logic, same ping interval, same reconnect button. They differ only in styling context (panel vs. full page). Any bug fix or feature addition must be done twice.
+          <div class="finding-fix"><strong>Fix:</strong> Extract a shared <code>XTermWidget</code> component and use it in both contexts.</div>
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">Inconsistent Supabase Client Instantiation</div>
+        </div>
+        <div class="finding-body">
+          All API routes except <code>agent-history/route.ts</code> create a <code>createClient()</code> instance inline. <code>agent-history</code> imports the shared <code>supabase</code> from <code>/lib/supabase.ts</code>, which uses the anon key instead of the service role key (the lib file only exports a single client). If the shared client ever needs middleware (e.g., request interceptors), only one route benefits.
+          <div class="finding-fix"><strong>Fix:</strong> Standardize on a single pattern: either all routes use the shared client (update lib/supabase.ts to export a service-role client), or all routes instantiate inline.</div>
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">Token Counts Are Estimates, Not Actuals — Cost Calculation Is Wrong</div>
+        </div>
+        <div class="finding-body">
+          <code>import-agent-history.py</code> uses <code>tokens_est = size // 4</code> (4 bytes per token). This is wrong for files with Unicode content (common in multilingual conversations), images in tool results, or compressed formats. Actual token counts from the Anthropic API are available in OpenClaw session data but are only used in the collector path (not the import-history path). The token leaderboard in the Stats tab mixes real token counts (from OpenClaw sessions) with estimated counts (from subagent file scanning), making comparisons meaningless.
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-yellow">MEDIUM</span>
+          <div class="finding-title">set -euo pipefail Makes Collector Fragile</div>
+        </div>
+        <div class="finding-body">
+          The <code>-e</code> flag causes any failing command to silently exit. If <code>openclaw sessions</code> exits with non-zero (timeout, process not running), the script aborts before sending metrics. The entire dashboard goes stale after 5 minutes (collector_alive = false) due to a transient openclaw glitch, not an actual system failure. Error is not logged anywhere.
+          <div class="finding-fix"><strong>Fix:</strong> Use <code>|| true</code> on commands that are allowed to fail gracefully, and log errors to <code>/tmp/collector.log</code>. The openclaw call in particular should be wrapped: <code>PARSED=$(openclaw sessions ... || echo '{"sessions":[]}')</code>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       8. MISSING FEATURES
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="missing">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v4M8 10v4M2 8h4M10 8h4" stroke-linecap="round"/></svg></div>
+      8. Missing Features — Gaps for Dan's Daily Workflow
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Current State</th>
+            <th>Gap</th>
+            <th>Priority</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Can Dan see which agents are running RIGHT NOW?</td>
+            <td>Yes, partially. Office grid shows working/idle status. DashboardPanel Agents tab lists working agents with current_task.</td>
+            <td>Design Studio agents always show idle. "current_task" text is truncated to 80 chars and often just shows a process command string, not a meaningful task description.</td>
+            <td><span class="badge badge-orange">High</span></td>
+          </tr>
+          <tr>
+            <td>Can Dan see Natali's conversation history?</td>
+            <td>"Думки Наталі" panel shows last 30 activity log entries tagged agent_id = 'natali'. The terminal provides live shell access.</td>
+            <td>There is <strong>no view of actual Telegram conversation history</strong>. The thought log shows internal actions, not what Natali said to Dan. No way to replay or review recent conversations from the dashboard.</td>
+            <td><span class="badge badge-orange">High</span></td>
+          </tr>
+          <tr>
+            <td>Can Dan see when a task was started/finished?</td>
+            <td>Tasks table has <code>created_at</code> and <code>updated_at</code>. Agent sessions have <code>started_at</code> and <code>finished_at</code>.</td>
+            <td>TaskCard UI does not display <code>created_at</code> or the time a task moved to in_progress. AgentPopup history shows <code>started_at</code> via "timeAgo" but no <code>finished_at</code> or duration. <strong>No task duration tracking exists anywhere.</strong></td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+          </tr>
+          <tr>
+            <td>Can Dan assign tasks to agents from the dashboard?</td>
+            <td>TaskCard has an <code>assigned_to</code> field. The DB supports it.</td>
+            <td><strong>No UI to assign tasks.</strong> The field exists in the data model but there is no dropdown, agent picker, or assign button on TaskCard or in the create task form.</td>
+            <td><span class="badge badge-orange">High</span></td>
+          </tr>
+          <tr>
+            <td>Can Dan see token usage per agent?</td>
+            <td>AgentPopup History tab shows total tokens for the week. DashboardPanel Stats tab shows a leaderboard.</td>
+            <td>No <strong>cost in USD</strong> anywhere (tokens × model rate). No breakdown by time period beyond today/week/month. No cost trend chart. Token counts are partially estimated (not from API).</td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+          </tr>
+          <tr>
+            <td>Is the activity feed real-time or templates?</td>
+            <td>Partially real. Working agent actions are real. Natali's thoughts are real when she sends them.</td>
+            <td><strong>Idle heartbeat messages are synthetic</strong> (5 rotating canned strings). When all agents are idle, the feed shows "System heartbeat — all services nominal" every minute. There is no visual distinction between real and synthetic entries.</td>
+            <td><span class="badge badge-orange">High</span></td>
+          </tr>
+          <tr>
+            <td>No token/cost trend chart</td>
+            <td>Leaderboard shows cumulative totals.</td>
+            <td>No time-series chart of token consumption. No way to spot a runaway agent consuming abnormal tokens. No daily/weekly trend visible at a glance.</td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+          </tr>
+          <tr>
+            <td>No notification/alert system</td>
+            <td>Dashboard shows current state only.</td>
+            <td>If the collector stops sending data (system goes offline), the dashboard silently shows stale data for up to 5 minutes before showing "offline". No push notification to Telegram when Natali crashes, a service goes down, or a task sits in_progress for &gt;24 hours.</td>
+            <td><span class="badge badge-red">Critical for ops</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       9. RECOMMENDATIONS ROADMAP
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="recs">
+    <div class="section-title">
+      <div class="icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13L6 9M10 5l4-4M6 9l4-4M2 13h4v-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      9. Recommendations Roadmap
+    </div>
+
+    <div class="info-box">
+      Prioritized by impact on Dan's daily workflow. Each recommendation is independent and can be tackled in any order within the same tier.
+    </div>
+
+    <div class="rec-grid" style="margin-bottom: 16px;">
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-red">Do Today</span>
+          <span class="badge badge-gray">~30 min</span>
+        </div>
+        <div class="rec-title">Fix the metrics race condition</div>
+        <div class="rec-body">Change the collector's DELETE+INSERT to a single UPSERT on a fixed ID row. Add <code>fallbackData: defaultMetrics</code> to <code>useMetrics</code> as a safety net. This prevents the dashboard from flashing blank 60 times per hour.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-red">Do Today</span>
+          <span class="badge badge-gray">~15 min</span>
+        </div>
+        <div class="rec-title">Add FAL_KEY to environment</div>
+        <div class="rec-body">Add <code>FAL_KEY</code> to <code>.env.local</code> and to Vercel project settings. Fix the model name mismatch in AIStudioPanel (or in the API route). Verify with one test generation.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-orange">This Week</span>
+          <span class="badge badge-gray">~1 hour</span>
+        </div>
+        <div class="rec-title">Implement the command polling loop</div>
+        <div class="rec-body">Add a function to <code>agent-metrics-collector.sh</code> that polls <code>office_commands WHERE status = 'pending'</code> and executes the 4 supported commands. This makes the Restart button actually work and unlocks remote control of the agent system from the dashboard.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-orange">This Week</span>
+          <span class="badge badge-gray">~2 hours</span>
+        </div>
+        <div class="rec-title">Add Design Studio agents to collector</div>
+        <div class="rec-body">Extend the 15-agent hardcoded list in <code>parse-agent-sessions.py</code> to include all 10 Design Studio agents with appropriate keyword mappings. Add color entries to <code>AGENT_ROOM_COLORS</code> in AgentPopup. These agents will then show real working/idle status.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-orange">This Week</span>
+          <span class="badge badge-gray">~1 hour</span>
+        </div>
+        <div class="rec-title">Separate synthetic heartbeats from real activity</div>
+        <div class="rec-body">Add a <code>type</code> column to <code>office_activity_log</code> (values: <code>real</code>, <code>heartbeat</code>). Filter heartbeats out of <code>/api/activity</code> response, or render them with 30% opacity and no icon. Dan should only see real agent actions in the live feed.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-orange">This Week</span>
+          <span class="badge badge-gray">~2 hours</span>
+        </div>
+        <div class="rec-title">Add task assignee picker + priority display</div>
+        <div class="rec-body">In TaskCard: render priority as a colored dot (1=red, 2=orange, 3=gray). In the create task form / task detail: add an agent dropdown populated from STATIC_AGENTS. This is the single highest-impact UI change for Dan's daily coordination workflow.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-yellow">Next Sprint</span>
+          <span class="badge badge-gray">~3 hours</span>
+        </div>
+        <div class="rec-title">Consolidate dashboard polling into a single /api/dashboard endpoint</div>
+        <div class="rec-body">Create one server-side endpoint that batches: metrics, services, natali-status, and recent activity into a single response. Replace 4 SWR hooks with 1. Reduces Supabase load by 75% when dashboard is open. Add <code>staleTime</code> to remaining hooks.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-yellow">Next Sprint</span>
+          <span class="badge badge-gray">~4 hours</span>
+        </div>
+        <div class="rec-title">Add token cost chart (USD) to Stats tab</div>
+        <div class="rec-body">Add model pricing constants (Opus: $15/$75 per M tokens in/out, Sonnet: $3/$15). Calculate daily cost from session data. Add a 7-day bar chart using Chart.js inline. Show "today's burn rate" in the header alongside the working agent count. This turns the Stats tab into something Dan actually checks daily.</div>
+      </div>
+
+    </div>
+
+    <div class="rec-grid">
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-yellow">Next Sprint</span>
+          <span class="badge badge-gray">~2 hours</span>
+        </div>
+        <div class="rec-title">Fix collector fragility (set -euo pipefail)</div>
+        <div class="rec-body">Wrap the <code>openclaw sessions</code> call in a fallback. Route all collector output to <code>/tmp/collector.log</code> with timestamps. Fix the <code>import-agent-history.py</code> env var name mismatch. These changes turn the collector from a silent-failure system into an observable one.</div>
+      </div>
+
+      <div class="rec">
+        <div class="rec-badge-row">
+          <span class="badge badge-blue">Later</span>
+          <span class="badge badge-gray">~5 hours</span>
+        </div>
+        <div class="rec-title">Add /tasks navigation link + task filters</div>
+        <div class="rec-body">Add a "Tasks" button to the main Header with a task count badge. On the Tasks page, add: filter by assignee, filter by project, filter by priority. This makes the task board useful at scale (50+ tasks). Also fix the drag-and-drop position persistence bug.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="footer">
+    Generated by Analyst Agent · agent-office.xyz Audit · 2026-03-19
+  </div>
+
+</div>
+</body>
+</html>
