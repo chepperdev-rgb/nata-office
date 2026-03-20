@@ -63,14 +63,14 @@ export async function POST(request: Request) {
   const body: CollectorPayload = await request.json()
   const now = new Date().toISOString()
 
-  // Upsert metrics on fixed ID (avoids blank flicker from DELETE→INSERT race)
+  // Delete old metrics then insert fresh (single-row table)
+  await supabase.from('office_system_metrics').delete().neq('updated_at', '')
   const { error: metricsError } = await supabase
     .from('office_system_metrics')
-    .upsert({
-      id: 1,
+    .insert({
       ...body.system,
       updated_at: now,
-    }, { onConflict: 'id' })
+    })
 
   if (metricsError) {
     return NextResponse.json({ error: metricsError.message }, { status: 500 })
