@@ -7,7 +7,6 @@ const supabase = createClient(
 )
 
 export async function GET() {
-  // Get natali status from service_status table (populated by collector)
   const { data: services } = await supabase
     .from('office_service_status')
     .select('*')
@@ -22,7 +21,6 @@ export async function GET() {
   const gateway = services?.find(s => s.service_id === 'gateway')
   const userbot = services?.find(s => s.service_id === 'userbot')
 
-  // Determine Natali overall status
   const lastUpdate = metrics?.updated_at ? new Date(metrics.updated_at) : null
   const isCollectorAlive = lastUpdate ? (Date.now() - lastUpdate.getTime()) < 5 * 60 * 1000 : false
   const gatewayOk = gateway?.status === 'running'
@@ -36,7 +34,6 @@ export async function GET() {
     ? 'degraded'
     : 'error'
 
-  // Claude processes count from details
   const claudeProcesses = (gateway?.details as Record<string, unknown>)?.claude_processes ?? null
 
   return NextResponse.json({
@@ -46,7 +43,11 @@ export async function GET() {
     claude_processes: claudeProcesses,
     last_seen: metrics?.updated_at ?? null,
     collector_alive: isCollectorAlive,
+    _debug: {
+      gatewayOk,
+      userbotOk,
+      userbotRaw: userbot?.status,
+      servicesCount: services?.length,
+    }
   })
 }
-
-// Version: 2026-03-20-fix-disabled
