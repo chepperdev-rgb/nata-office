@@ -13,7 +13,6 @@ import { STATIC_AGENTS } from '@/lib/constants'
 import { useWorkerStats } from '@/hooks/useWorkerStats'
 import TerminalPanel from './TerminalPanel'
 import AIStudioPanel from './AIStudioPanel'
-import UsageModal from './UsageModal'
 
 interface DashboardPanelProps {
   open: boolean
@@ -450,7 +449,6 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
   const [restarting, setRestarting] = useState(false)
   const [activeTab, setActiveTab] = useState<'dashboard' | 'terminal' | 'aistudio'>('dashboard')
   const [tasksOpen, setTasksOpen] = useState(false)
-  const [usageOpen, setUsageOpen] = useState(false)
 
   // Nataly processes from services
   const natalyProcesses = (services.find(s => s.service_id === 'nataly_processes')?.details?.processes) ?? []
@@ -613,45 +611,15 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white/80">Dashboard</h2>
-              <div className="flex items-center gap-2">
-                {/* Usage button */}
-                <button
-                  onClick={() => setUsageOpen(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.4)',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(74,222,128,0.08)'
-                    e.currentTarget.style.borderColor = 'rgba(74,222,128,0.2)'
-                    e.currentTarget.style.color = 'rgba(74,222,128,0.8)'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
-                  }}
-                  title="Claude Usage"
-                  aria-label="Open Claude Usage"
-                >
-                  <IconBrain size={11} color="currentColor" />
-                  Usage
-                </button>
-                <button
-                  onClick={onClose}
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/10 transition-all"
-                >
-                  <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                    <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={onClose}
+                className="w-6 h-6 rounded-full flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/10 transition-all"
+              >
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+                  <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
             </div>
-
-            {/* Usage Modal */}
-            <UsageModal open={usageOpen} onClose={() => setUsageOpen(false)} />
 
             {/* Natali Status Card */}
             {(() => {
