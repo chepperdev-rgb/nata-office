@@ -26,7 +26,7 @@ export async function GET() {
   const lastUpdate = metrics?.updated_at ? new Date(metrics.updated_at) : null
   const isCollectorAlive = lastUpdate ? (Date.now() - lastUpdate.getTime()) < 5 * 60 * 1000 : false
   const gatewayOk = gateway?.status === 'running'
-  const userbotOk = userbot?.status === 'running'
+  const userbotOk = userbot?.status === 'running' || userbot?.status === 'disabled'
 
   const overallStatus = !isCollectorAlive
     ? 'offline'
