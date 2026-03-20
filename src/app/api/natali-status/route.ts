@@ -24,6 +24,7 @@ export async function GET() {
   const lastUpdate = metrics?.updated_at ? new Date(metrics.updated_at) : null
   const isCollectorAlive = lastUpdate ? (Date.now() - lastUpdate.getTime()) < 5 * 60 * 1000 : false
   const gatewayOk = gateway?.status === 'running'
+  // Userbot intentionally disabled (2026-03-19) — "disabled" is normal, not degraded
   const userbotOk = userbot?.status === 'running' || userbot?.status === 'disabled'
 
   const overallStatus = !isCollectorAlive
@@ -43,11 +44,5 @@ export async function GET() {
     claude_processes: claudeProcesses,
     last_seen: metrics?.updated_at ?? null,
     collector_alive: isCollectorAlive,
-    _debug: {
-      gatewayOk,
-      userbotOk,
-      userbotRaw: userbot?.status,
-      servicesCount: services?.length,
-    }
   })
 }
