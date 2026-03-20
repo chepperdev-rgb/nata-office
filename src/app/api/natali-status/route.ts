@@ -48,3 +48,5 @@ export async function GET() {
     collector_alive: isCollectorAlive,
   })
 }
+
+// Version: 2026-03-20-fix-disabled
