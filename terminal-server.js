@@ -15,7 +15,7 @@ const crypto = require('crypto')
 const PORT = process.env.TERMINAL_PORT || 3001
 const TOKEN = process.env.TERMINAL_TOKEN || 'nataly-terminal-2026'
 const PING_INTERVAL = 25000
-const SESSION_TTL = 30 * 60 * 1000    // 30 min — kill orphaned PTY after this
+const SESSION_TTL = 0                  // 0 = never expire — PTY lives until server restart or shell exit
 const SCROLLBACK_LIMIT = 50000        // chars to keep for replay on reconnect
 const SESSION_CHECK_INTERVAL = 60000  // check for expired sessions every 60s
 
@@ -103,14 +103,17 @@ function detachWs(session) {
   session.ws = null
   session.lastActivity = Date.now()
 
-  // Start expiration countdown — kill PTY if no reconnect within TTL
-  session.expireTimer = setTimeout(() => {
-    console.log(`[session ${session.id}] Expired after ${SESSION_TTL / 1000}s, killing PTY`)
-    try { session.pty.kill() } catch {}
-    sessions.delete(session.id)
-  }, SESSION_TTL)
-
-  console.log(`[session ${session.id}] Detached, will expire in ${SESSION_TTL / 1000}s`)
+  if (SESSION_TTL > 0) {
+    // Start expiration countdown — kill PTY if no reconnect within TTL
+    session.expireTimer = setTimeout(() => {
+      console.log(`[session ${session.id}] Expired after ${SESSION_TTL / 1000}s, killing PTY`)
+      try { session.pty.kill() } catch {}
+      sessions.delete(session.id)
+    }, SESSION_TTL)
+    console.log(`[session ${session.id}] Detached, will expire in ${SESSION_TTL / 1000}s`)
+  } else {
+    console.log(`[session ${session.id}] Detached, no expiry — PTY stays alive`)
+  }
 }
 
 // ── WebSocket Server ───────────────────────────────────────────
