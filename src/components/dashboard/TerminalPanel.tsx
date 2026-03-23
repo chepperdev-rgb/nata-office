@@ -19,8 +19,8 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
   const sessionIdRef = useRef<string | null>(null)
   const reconnectAttemptRef = useRef(0)
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const intentionalCloseRef = useRef(false)
   const clientPingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const onDataDisposableRef = useRef<{ dispose: () => void } | null>(null)
   const [connected, setConnected] = useState(false)
   const [reconnecting, setReconnecting] = useState(false)
   const [error, setError] = useState('')
@@ -34,9 +34,20 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
   const connectWs = useCallback(() => {
     if (!termRef.current || !TERMINAL_WS_URL) return
 
+    // Dispose previous onData listener to prevent accumulation
+    if (onDataDisposableRef.current) {
+      onDataDisposableRef.current.dispose()
+      onDataDisposableRef.current = null
+    }
+
+    // Close previous WS — null out handlers first to prevent ghost reconnect
     if (wsRef.current) {
-      intentionalCloseRef.current = true
-      wsRef.current.close()
+      const oldWs = wsRef.current
+      oldWs.onclose = null
+      oldWs.onerror = null
+      oldWs.onmessage = null
+      oldWs.onopen = null
+      oldWs.close()
       wsRef.current = null
     }
     if (clientPingTimerRef.current) {
@@ -52,9 +63,9 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
     if (sessionIdRef.current) url += `&session=${sessionIdRef.current}`
     if (dims) url += `&cols=${dims.cols}&rows=${dims.rows}`
 
+    let sessionExited = false
     const ws = new WebSocket(url)
     wsRef.current = ws
-    intentionalCloseRef.current = false
 
     ws.onopen = () => {
       setConnected(true)
@@ -91,7 +102,7 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
           setConnected(false)
           sessionIdRef.current = null
           sessionStorage.removeItem('terminal-panel-session-id')
-          intentionalCloseRef.current = true
+          sessionExited = true
         } else if (type === 'error') {
           term.write(`\r\n\x1b[1;31m${data}\x1b[0m\r\n`)
           setError(data)
@@ -112,12 +123,13 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
         clearInterval(clientPingTimerRef.current)
         clientPingTimerRef.current = null
       }
-      if (!intentionalCloseRef.current) {
+      if (!sessionExited && wsRef.current === ws) {
         scheduleReconnect()
       }
     }
 
-    term.onData((data) => {
+    // Register onData and store disposable
+    onDataDisposableRef.current = term.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'input', data }))
       }
@@ -193,10 +205,10 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
       return () => clearTimeout(timer)
     } else {
       // Panel closed — close WS but keep session alive on server
-      intentionalCloseRef.current = true
       if (reconnectTimerRef.current) { clearTimeout(reconnectTimerRef.current); reconnectTimerRef.current = null }
       if (clientPingTimerRef.current) { clearInterval(clientPingTimerRef.current); clientPingTimerRef.current = null }
-      if (wsRef.current) { wsRef.current.close(); wsRef.current = null }
+      if (onDataDisposableRef.current) { onDataDisposableRef.current.dispose(); onDataDisposableRef.current = null }
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); wsRef.current = null }
       if (termRef.current) { termRef.current.dispose(); termRef.current = null }
       setConnected(false)
       setReconnecting(false)

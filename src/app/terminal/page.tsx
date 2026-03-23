@@ -16,8 +16,8 @@ export default function TerminalPage() {
   const sessionIdRef = useRef<string | null>(null)
   const reconnectAttemptRef = useRef(0)
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const intentionalCloseRef = useRef(false)
   const clientPingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const onDataDisposableRef = useRef<{ dispose: () => void } | null>(null)
   const [connected, setConnected] = useState(false)
   const [reconnecting, setReconnecting] = useState(false)
   const [error, setError] = useState('')
@@ -31,10 +31,20 @@ export default function TerminalPage() {
   const connectWs = useCallback(() => {
     if (!termRef.current || !TERMINAL_WS_URL) return
 
-    // Close previous WS
+    // Dispose previous onData listener to prevent accumulation
+    if (onDataDisposableRef.current) {
+      onDataDisposableRef.current.dispose()
+      onDataDisposableRef.current = null
+    }
+
+    // Close previous WS — null out handlers first to prevent ghost reconnect
     if (wsRef.current) {
-      intentionalCloseRef.current = true
-      wsRef.current.close()
+      const oldWs = wsRef.current
+      oldWs.onclose = null
+      oldWs.onerror = null
+      oldWs.onmessage = null
+      oldWs.onopen = null
+      oldWs.close()
       wsRef.current = null
     }
     if (clientPingTimerRef.current) {
@@ -51,9 +61,9 @@ export default function TerminalPage() {
     if (sessionIdRef.current) url += `&session=${sessionIdRef.current}`
     if (dims) url += `&cols=${dims.cols}&rows=${dims.rows}`
 
+    let sessionExited = false
     const ws = new WebSocket(url)
     wsRef.current = ws
-    intentionalCloseRef.current = false
 
     ws.onopen = () => {
       setConnected(true)
@@ -82,11 +92,9 @@ export default function TerminalPage() {
         if (type === 'output') {
           term.write(data)
         } else if (type === 'session') {
-          // Server sent session ID — save it
           sessionIdRef.current = data
           sessionStorage.setItem('terminal-session-id', data)
         } else if (type === 'replay') {
-          // Reconnect replay — clear screen and write buffer
           term.clear()
           term.write(data)
         } else if (type === 'exit') {
@@ -94,7 +102,7 @@ export default function TerminalPage() {
           setConnected(false)
           sessionIdRef.current = null
           sessionStorage.removeItem('terminal-session-id')
-          intentionalCloseRef.current = true // don't auto-reconnect on exit
+          sessionExited = true // don't auto-reconnect on clean exit
         } else if (type === 'error') {
           term.write(`\r\n\x1b[1;31m${data}\x1b[0m\r\n`)
           setError(data)
@@ -116,13 +124,14 @@ export default function TerminalPage() {
         clientPingTimerRef.current = null
       }
 
-      if (!intentionalCloseRef.current) {
-        // Auto-reconnect with backoff
+      // Auto-reconnect unless session exited cleanly or WS was replaced
+      if (!sessionExited && wsRef.current === ws) {
         scheduleReconnect()
       }
     }
 
-    term.onData((data) => {
+    // Register onData and store disposable
+    onDataDisposableRef.current = term.onData((data) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'input', data }))
       }
@@ -214,10 +223,10 @@ export default function TerminalPage() {
     const timer = setTimeout(initTerminal, 150)
     return () => {
       clearTimeout(timer)
-      intentionalCloseRef.current = true
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
       if (clientPingTimerRef.current) clearInterval(clientPingTimerRef.current)
-      if (wsRef.current) { wsRef.current.close(); wsRef.current = null }
+      if (onDataDisposableRef.current) { onDataDisposableRef.current.dispose(); onDataDisposableRef.current = null }
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); wsRef.current = null }
       if (termRef.current) { termRef.current.dispose(); termRef.current = null }
     }
   }, [initTerminal])

@@ -15,7 +15,8 @@ const crypto = require('crypto')
 const PORT = process.env.TERMINAL_PORT || 3001
 const TOKEN = process.env.TERMINAL_TOKEN || 'nataly-terminal-2026'
 const PING_INTERVAL = 25000
-const SESSION_TTL = 0                  // 0 = never expire — PTY lives until server restart or shell exit
+const SESSION_TTL = parseInt(process.env.SESSION_TTL || '0') || 0  // 0 = no expiry
+const MAX_SESSIONS = parseInt(process.env.MAX_SESSIONS || '5')     // max concurrent PTYs
 const SCROLLBACK_LIMIT = 50000        // chars to keep for replay on reconnect
 const SESSION_CHECK_INTERVAL = 60000  // check for expired sessions every 60s
 
@@ -142,6 +143,27 @@ wss.on('connection', (ws, req) => {
     isReconnect = true
     console.log(`[session ${session.id}] Reconnected`)
   } else {
+    // Enforce max sessions — evict oldest detached session if at limit
+    if (sessions.size >= MAX_SESSIONS) {
+      let oldest = null
+      for (const [, s] of sessions) {
+        if (!s.ws && (!oldest || s.lastActivity < oldest.lastActivity)) {
+          oldest = s
+        }
+      }
+      if (oldest) {
+        console.log(`[session ${oldest.id}] Evicting oldest detached session`)
+        clearTimeout(oldest.expireTimer)
+        try { oldest.pty.kill() } catch {}
+        sessions.delete(oldest.id)
+      } else {
+        // All sessions are attached — reject
+        console.log(`[terminal-server] Max sessions (${MAX_SESSIONS}) reached, all attached`)
+        ws.send(JSON.stringify({ type: 'error', data: 'Too many active sessions\r\n' }))
+        ws.close(1013, 'Too many sessions')
+        return
+      }
+    }
     // New session
     const cols = parseInt(url.searchParams.get('cols')) || 120
     const rows = parseInt(url.searchParams.get('rows')) || 40
