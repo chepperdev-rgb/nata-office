@@ -267,6 +267,19 @@ export default function TerminalPage() {
     term.open(containerRef.current)
     fitAddon.fit()
 
+    // Insert spacer inside xterm viewport so scrollbar can scroll past text
+    // into empty black space (one full screen height)
+    const viewport = containerRef.current?.querySelector('.xterm-viewport')
+    if (viewport) {
+      const spacer = document.createElement('div')
+      spacer.style.height = '100vh'
+      spacer.style.minHeight = '100vh'
+      spacer.style.pointerEvents = 'none'
+      spacer.style.flexShrink = '0'
+      spacer.className = 'xterm-scroll-spacer'
+      viewport.appendChild(spacer)
+    }
+
     termRef.current = term
     fitRef.current = fitAddon
 
@@ -324,6 +337,29 @@ export default function TerminalPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // iPhone keyboard — resize terminal when virtual keyboard opens/closes
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const headerH = 45
+    const handleVVResize = () => {
+      if (!containerRef.current) return
+      const h = vv.height - headerH
+      containerRef.current.style.height = `${Math.max(h, 150)}px`
+      if (fitRef.current) {
+        fitRef.current.fit()
+        const dims = fitRef.current.proposeDimensions()
+        if (dims && wsRef.current?.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: 'resize', data: { cols: dims.cols, rows: dims.rows } }))
+        }
+      }
+      // Scroll xterm to bottom so cursor is visible
+      if (termRef.current) termRef.current.scrollToBottom()
+    }
+    vv.addEventListener('resize', handleVVResize)
+    return () => vv.removeEventListener('resize', handleVVResize)
+  }, [])
+
   const handleReconnect = useCallback(() => {
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current)
@@ -347,7 +383,7 @@ export default function TerminalPage() {
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />
 
   return (
-    <div className="flex flex-col" style={{ background: '#0a0a0a', height: '100dvh', overflowY: 'auto', overflowX: 'hidden' }}>
+    <div className="flex flex-col" style={{ background: '#0a0a0a', height: '100dvh', overflow: 'hidden' }}>
       {/* Header bar */}
       <div
         className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 shrink-0"
@@ -425,13 +461,8 @@ export default function TerminalPage() {
       <div
         ref={containerRef}
         className="overflow-x-hidden"
-        style={{ height: 'calc(100dvh - 45px)', minHeight: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px', touchAction: 'pan-y', flexShrink: 0 }}
+        style={{ height: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px', touchAction: 'pan-y', flexShrink: 0 }}
       />
-
-      {/* Scroll spacer — один экран пустоты снизу для удобного скролла на iPhone.
-          Этот div виден только когда пользователь скроллит страницу ЗА пределы терминала.
-          Для работы нужно чтобы body не блокировал overflow-y. */}
-      <div aria-hidden style={{ height: '100dvh', minHeight: '100dvh', background: '#0a0a0a', flexShrink: 0, pointerEvents: 'none' }} />
     </div>
   )
 }
