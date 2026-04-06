@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 const TERMINAL_WS_URL = process.env.NEXT_PUBLIC_TERMINAL_WS_URL || ''
 const TERMINAL_TOKEN = process.env.NEXT_PUBLIC_TERMINAL_TOKEN || 'nataly-terminal-2026'
-const TERMINAL_PIN = process.env.NEXT_PUBLIC_TERMINAL_PIN || '1991'
+const TERMINAL_PIN = (process.env.NEXT_PUBLIC_TERMINAL_PIN || '1991').trim()
 
 const RECONNECT_DELAYS = [500, 1000, 2000, 4000, 8000, 15000] // exponential backoff
 
