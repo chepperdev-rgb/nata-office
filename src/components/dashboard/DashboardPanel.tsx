@@ -10,6 +10,7 @@ import { useNataliStatus } from '@/hooks/useNataliStatus'
 import { useProcesses } from '@/hooks/useProcesses'
 import { useThoughts } from '@/hooks/useThoughts'
 import { STATIC_AGENTS } from '@/lib/constants'
+import { Icon, THOUGHT_ICON_MAP } from '@/lib/icons'
 import { useWorkerStats } from '@/hooks/useWorkerStats'
 import TerminalPanel from './TerminalPanel'
 import AIStudioPanel from './AIStudioPanel'
@@ -220,22 +221,23 @@ function ThoughtsPanel({ thoughts }: { thoughts: Thought[] }) {
   const [expanded, setExpanded] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const prefixMap: Record<string, { color: string }> = {
-    '💭': { color: '#fbbf2499' },
-    '⚡': { color: '#4ade8099' },
-    '❌': { color: '#f43f5e99' },
-    '✅': { color: '#34d39999' },
+  const prefixColorMap: Record<string, string> = {
+    'MessageCircle': '#fbbf2499',
+    'Zap':           '#4ade8099',
+    'XCircle':       '#f43f5e99',
+    'CheckCircle':   '#34d39999',
   }
 
   const rows = thoughts.map(t => {
     const match = t.action.match(/^\[(.+?)\]\s*(.+)/)
-    const icon = match?.[1] ?? '💭'
+    const rawIcon = match?.[1] ?? '\u{1F4AD}'
+    const iconName = THOUGHT_ICON_MAP[rawIcon] ?? 'MessageCircle'
     const text = match?.[2] ?? t.action
-    const style = prefixMap[icon] ?? { color: '#fbbf2499' }
+    const iconColor = prefixColorMap[iconName] ?? '#fbbf2499'
     const timeStr = new Date(t.created_at).toLocaleTimeString([], {
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
     })
-    return { id: t.id, icon, text, style, timeStr }
+    return { id: t.id, iconName, text, iconColor, timeStr }
   })
 
   return (
@@ -293,7 +295,7 @@ function ThoughtsPanel({ thoughts }: { thoughts: Thought[] }) {
               style={{ maxHeight: '340px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(251,191,36,0.3) transparent' }}
             >
               {rows.length === 0 ? (
-                <p className="text-[10px] text-white/15 italic mt-2">Тиша... чекаю задач 🌙</p>
+                <p className="text-[10px] text-white/15 italic mt-2 flex items-center gap-1">Тиша... чекаю задач <Icon name="Moon" size={10} /></p>
               ) : (
                 rows.map((r, i) => (
                   <motion.div
@@ -304,8 +306,8 @@ function ThoughtsPanel({ thoughts }: { thoughts: Thought[] }) {
                     className="flex items-start gap-2"
                   >
                     <span className="text-[9px] text-white/20 mt-0.5 shrink-0 font-mono">{r.timeStr}</span>
-                    <span className="text-[10px] shrink-0">{r.icon}</span>
-                    <span className="text-[11px] leading-tight" style={{ color: r.style.color }}>{r.text}</span>
+                    <span className="shrink-0 mt-0.5"><Icon name={r.iconName} size={12} color={r.iconColor} /></span>
+                    <span className="text-[11px] leading-tight" style={{ color: r.iconColor }}>{r.text}</span>
                   </motion.div>
                 ))
               )}
@@ -318,8 +320,8 @@ function ThoughtsPanel({ thoughts }: { thoughts: Thought[] }) {
       {!expanded && rows.length > 0 && (
         <div className="px-3 py-2 flex items-start gap-2">
           <span className="text-[9px] text-white/20 mt-0.5 shrink-0 font-mono">{rows[0].timeStr}</span>
-          <span className="text-[10px] shrink-0">{rows[0].icon}</span>
-          <span className="text-[11px] leading-tight truncate" style={{ color: rows[0].style.color }}>{rows[0].text}</span>
+          <span className="shrink-0 mt-0.5"><Icon name={rows[0].iconName} size={12} color={rows[0].iconColor} /></span>
+          <span className="text-[11px] leading-tight truncate" style={{ color: rows[0].iconColor }}>{rows[0].text}</span>
         </div>
       )}
     </div>
@@ -581,7 +583,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
           {activeTab === 'terminal' && (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-4">
-                <div className="text-4xl">🖥</div>
+                <Icon name="Monitor" size={40} color="rgba(255,255,255,0.4)" />
                 <p className="text-white/40 text-sm">Terminal opens in fullscreen mode</p>
                 <a
                   href="/terminal"
@@ -812,7 +814,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                                 {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                               </span>
                               <span className="text-[10px]" style={{ color: '#facc1599' }}>
-                                {agent?.emoji ?? '⚙️'} {agent?.name ?? a.agent_id}
+                                <Icon name={agent?.icon ?? 'Settings'} size={10} /> {agent?.name ?? a.agent_id}
                               </span>
                               <span className="text-[10px] text-white/50 truncate">{a.action}</span>
                             </div>
@@ -882,7 +884,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
                           className="w-1.5 h-1.5 rounded-full"
                           style={{ background: '#4ade80', animation: 'pulse-dot 2s infinite' }}
                         />
-                        <span className="text-xs text-white/70">{staticAgent?.emoji} {staticAgent?.name || a.id}</span>
+                        <span className="text-xs text-white/70 flex items-center gap-1"><Icon name={staticAgent?.icon ?? 'Bot'} size={12} /> {staticAgent?.name || a.id}</span>
                         <span className="text-[10px] text-white/20 ml-auto">{staticAgent?.role}</span>
                       </div>
                     )
@@ -1026,7 +1028,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
               {workerWeek.natali && (
                 <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.10)' }}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px]">🦞</span>
+                    <span className="text-[10px]" style={{ color: '#4ade80' }}>N</span>
                     <span className="text-[10px] font-semibold" style={{ color: '#4ade80' }}>НАТАЛИ (координатор)</span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -1046,7 +1048,7 @@ export default function DashboardPanel({ open, onClose }: DashboardPanelProps) {
               {workerToday.worker_of_period && (
                 <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.12)' }}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px]">🏆</span>
+                    <Icon name="Trophy" size={12} color="#facc15" />
                     <span className="text-[10px] font-semibold" style={{ color: '#facc15' }}>WORKER OF THE DAY</span>
                   </div>
                   <div className="flex items-center justify-between">

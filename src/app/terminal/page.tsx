@@ -21,10 +21,15 @@ export default function TerminalPage() {
   const [connected, setConnected] = useState(false)
   const [reconnecting, setReconnecting] = useState(false)
   const [error, setError] = useState('')
+  const [profile, setProfile] = useState<string | null>(null)
 
-  // Restore session ID from sessionStorage
+  // Read profile from URL and restore session ID
   useEffect(() => {
-    const saved = sessionStorage.getItem('terminal-session-id')
+    const params = new URLSearchParams(window.location.search)
+    const p = params.get('profile')
+    setProfile(p)
+    const key = p ? `terminal-session-id-${p}` : 'terminal-session-id'
+    const saved = sessionStorage.getItem(key)
     if (saved) sessionIdRef.current = saved
   }, [])
 
@@ -57,9 +62,12 @@ export default function TerminalPage() {
     const dims = fitAddon?.proposeDimensions()
 
     // Build URL with session ID for reconnect
+    const params = new URLSearchParams(window.location.search)
+    const prof = params.get('profile')
     let url = `${TERMINAL_WS_URL}?token=${TERMINAL_TOKEN}`
     if (sessionIdRef.current) url += `&session=${sessionIdRef.current}`
     if (dims) url += `&cols=${dims.cols}&rows=${dims.rows}`
+    if (prof) url += `&profile=${prof}`
 
     let sessionExited = false
     const ws = new WebSocket(url)
@@ -93,7 +101,8 @@ export default function TerminalPage() {
           term.write(data)
         } else if (type === 'session') {
           sessionIdRef.current = data
-          sessionStorage.setItem('terminal-session-id', data)
+          const sKey = prof ? `terminal-session-id-${prof}` : 'terminal-session-id'
+          sessionStorage.setItem(sKey, data)
         } else if (type === 'replay') {
           term.clear()
           term.write(data)
@@ -101,7 +110,8 @@ export default function TerminalPage() {
           term.write('\r\n\x1b[38;5;245m  Session ended.\x1b[0m\r\n')
           setConnected(false)
           sessionIdRef.current = null
-          sessionStorage.removeItem('terminal-session-id')
+          const exitKey = prof ? `terminal-session-id-${prof}` : 'terminal-session-id'
+          sessionStorage.removeItem(exitKey)
           sessionExited = true // don't auto-reconnect on clean exit
         } else if (type === 'error') {
           term.write(`\r\n\x1b[1;31m${data}\x1b[0m\r\n`)
@@ -278,7 +288,8 @@ export default function TerminalPage() {
 
   const handleNewSession = useCallback(() => {
     sessionIdRef.current = null
-    sessionStorage.removeItem('terminal-session-id')
+    const nKey = profile ? `terminal-session-id-${profile}` : 'terminal-session-id'
+    sessionStorage.removeItem(nKey)
     if (termRef.current) {
       termRef.current.clear()
       termRef.current.write('\r\n\x1b[38;5;245m  Starting new session...\x1b[0m\r\n')
@@ -290,13 +301,13 @@ export default function TerminalPage() {
     <div className="fixed inset-0 flex flex-col" style={{ background: '#0a0a0a' }}>
       {/* Header bar */}
       <div
-        className="flex items-center justify-between px-4 py-2.5 shrink-0"
+        className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: '#0d0d0d' }}
       >
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="text-white/30 hover:text-white/60 transition-colors p-1"
+            className="text-white/30 hover:text-white/60 transition-colors p-2.5"
             title="Back to Office"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -312,6 +323,28 @@ export default function TerminalPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 mr-2">
+            <a
+              href="/terminal"
+              className={`text-[10px] font-mono px-2.5 py-1.5 rounded transition-all ${
+                !profile
+                  ? 'text-blue-400 bg-blue-400/15 border border-blue-400/30'
+                  : 'text-white/30 hover:text-white/50 border border-transparent'
+              }`}
+            >
+              Auth 1
+            </a>
+            <a
+              href="/terminal?profile=auth2"
+              className={`text-[10px] font-mono px-2.5 py-1.5 rounded transition-all ${
+                profile === 'auth2'
+                  ? 'text-purple-400 bg-purple-400/15 border border-purple-400/30'
+                  : 'text-white/30 hover:text-white/50 border border-transparent'
+              }`}
+            >
+              Auth 2
+            </a>
+          </div>
           <span
             className={`text-[10px] px-2 py-0.5 rounded font-mono leading-none ${
               connected
@@ -325,13 +358,13 @@ export default function TerminalPage() {
           </span>
           <button
             onClick={handleReconnect}
-            className="text-[10px] font-mono px-2.5 py-1 rounded border border-white/10 hover:border-white/30 text-white/40 hover:text-white/70 transition-all"
+            className="text-[10px] font-mono px-3 py-2 rounded border border-white/10 hover:border-white/30 text-white/40 hover:text-white/70 transition-all"
           >
             Reconnect
           </button>
           <button
             onClick={handleNewSession}
-            className="text-[10px] font-mono px-2.5 py-1 rounded border border-white/10 hover:border-white/30 text-white/40 hover:text-white/70 transition-all"
+            className="text-[10px] font-mono px-3 py-2 rounded border border-white/10 hover:border-white/30 text-white/40 hover:text-white/70 transition-all"
             title="Start fresh session"
           >
             New
@@ -343,7 +376,7 @@ export default function TerminalPage() {
       <div
         ref={containerRef}
         className="flex-1 min-h-0 overflow-hidden"
-        style={{ padding: '8px 12px 12px 12px' }}
+        style={{ padding: '8px 12px 12px 12px', touchAction: 'none' }}
       />
     </div>
   )

@@ -98,7 +98,7 @@ export default function TaskCard({ task, onDelete, isDragging }: TaskCardProps) 
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(task.id) }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity text-white/20 hover:text-red-400 hover:bg-red-400/10"
+            className="w-8 h-8 -mr-1.5 -mt-1 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity text-white/20 hover:text-red-400 hover:bg-red-400/10"
           >
             <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
               <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

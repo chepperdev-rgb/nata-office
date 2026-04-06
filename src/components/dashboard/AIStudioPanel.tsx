@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Star } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface GeneratedImage {
@@ -152,7 +153,7 @@ function Stars({ count, max = 5 }: { count: number; max?: number }) {
   return (
     <span className="flex gap-0.5">
       {Array.from({ length: max }).map((_, i) => (
-        <span key={i} style={{ color: i < count ? '#a855f7' : 'rgba(255,255,255,0.15)', fontSize: 10 }}>★</span>
+        <Star key={i} size={10} fill={i < count ? '#a855f7' : 'transparent'} color={i < count ? '#a855f7' : 'rgba(255,255,255,0.15)'} strokeWidth={1.5} />
       ))}
     </span>
   )

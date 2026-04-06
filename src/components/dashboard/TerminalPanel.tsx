@@ -288,7 +288,7 @@ export default function TerminalPanel({ open }: TerminalPanelProps) {
       <div
         ref={containerRef}
         className="flex-1 overflow-hidden"
-        style={{ padding: '8px', background: '#0a0a0a' }}
+        style={{ padding: '8px', background: '#0a0a0a', touchAction: 'none' }}
       />
     </div>
   )

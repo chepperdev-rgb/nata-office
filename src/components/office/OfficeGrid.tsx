@@ -16,7 +16,7 @@ export default function OfficeGrid({ rooms, agents, onAgentClick }: OfficeGridPr
   return (
     <motion.div
       className="grid gap-3"
-      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))' }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}

@@ -26,7 +26,7 @@ export default function Header({ onToggleDashboard, dashboardOpen, workingCount,
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-6"
+      className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-3 sm:px-6"
       style={{
         background: 'rgba(8, 8, 8, 0.85)',
         backdropFilter: 'blur(20px)',
@@ -98,7 +98,7 @@ export default function Header({ onToggleDashboard, dashboardOpen, workingCount,
         <span className="text-xs text-white/30 font-mono hidden sm:block tracking-wider">{time}</span>
         <a
           href="/tasks"
-          className="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all duration-300"
+          className="px-3.5 py-2.5 text-xs font-medium rounded-lg transition-all duration-300"
           style={{
             background: 'rgba(245,158,11,0.08)',
             border: '1px solid rgba(245,158,11,0.15)',
@@ -109,7 +109,7 @@ export default function Header({ onToggleDashboard, dashboardOpen, workingCount,
         </a>
         <button
           onClick={onToggleDashboard}
-          className="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all duration-300"
+          className="px-3.5 py-2.5 text-xs font-medium rounded-lg transition-all duration-300"
           style={{
             background: dashboardOpen ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.04)',
             border: `1px solid ${dashboardOpen ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255,255,255,0.08)'}`,

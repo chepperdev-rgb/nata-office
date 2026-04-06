@@ -14,6 +14,12 @@ const crypto = require('crypto')
 
 const PORT = process.env.TERMINAL_PORT || 3001
 const TOKEN = process.env.TERMINAL_TOKEN || 'nataly-terminal-2026'
+
+// Auth profiles — two OAuth tokens for failover
+const AUTH_PROFILES = {
+  auth1: process.env.ANTHROPIC_API_KEY,
+  auth2: process.env.ANTHROPIC_API_KEY_2,
+}
 const PING_INTERVAL = 25000
 const SESSION_TTL = parseInt(process.env.SESSION_TTL || '0') || 0  // 0 = no expiry
 const MAX_SESSIONS = parseInt(process.env.MAX_SESSIONS || '5')     // max concurrent PTYs
@@ -23,20 +29,28 @@ const SESSION_CHECK_INTERVAL = 60000  // check for expired sessions every 60s
 // ── Session Store ──────────────────────────────────────────────
 const sessions = new Map()  // sessionId → { pty, buffer, ws, cols, rows, lastActivity, expireTimer }
 
-function createSession(cols = 120, rows = 40) {
+function createSession(cols = 120, rows = 40, profile = null) {
   const id = crypto.randomBytes(8).toString('hex')
   const shell = process.env.SHELL || '/bin/zsh'
+
+  const env = {
+    ...process.env,
+    TERM: 'xterm-256color',
+    LANG: 'en_US.UTF-8',
+  }
+
+  // Override ANTHROPIC_API_KEY if a profile is specified
+  if (profile && AUTH_PROFILES[profile]) {
+    env.ANTHROPIC_API_KEY = AUTH_PROFILES[profile]
+    console.log(`[session ${id}] Using auth profile: ${profile}`)
+  }
 
   const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-256color',
     cols,
     rows,
     cwd: os.homedir(),
-    env: {
-      ...process.env,
-      TERM: 'xterm-256color',
-      LANG: 'en_US.UTF-8',
-    },
+    env,
   })
 
   const session = {
@@ -167,7 +181,8 @@ wss.on('connection', (ws, req) => {
     // New session
     const cols = parseInt(url.searchParams.get('cols')) || 120
     const rows = parseInt(url.searchParams.get('rows')) || 40
-    session = createSession(cols, rows)
+    const profile = url.searchParams.get('profile')
+    session = createSession(cols, rows, profile)
   }
 
   // Attach this WS to the session

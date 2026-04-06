@@ -2,13 +2,14 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { ClipboardList, Zap, Check } from 'lucide-react'
 import TaskCard from './TaskCard'
 import type { Task } from '@/types'
 
-const COLUMN_CONFIG: Record<string, { label: string; color: string; emoji: string }> = {
-  planning: { label: 'Planning', color: '#f59e0b', emoji: '📋' },
-  in_progress: { label: 'In Progress', color: '#3b82f6', emoji: '⚡' },
-  done: { label: 'Done', color: '#4ade80', emoji: '✓' },
+const COLUMN_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  planning: { label: 'Planning', color: '#f59e0b', icon: <ClipboardList size={12} strokeWidth={1.8} /> },
+  in_progress: { label: 'In Progress', color: '#3b82f6', icon: <Zap size={12} strokeWidth={1.8} /> },
+  done: { label: 'Done', color: '#4ade80', icon: <Check size={12} strokeWidth={1.8} /> },
 }
 
 interface TaskColumnProps {
@@ -19,7 +20,7 @@ interface TaskColumnProps {
 }
 
 export default function TaskColumn({ status, tasks, onDelete, children }: TaskColumnProps) {
-  const config = COLUMN_CONFIG[status] || { label: status, color: '#666', emoji: '' }
+  const config = COLUMN_CONFIG[status] || { label: status, color: '#666', icon: null }
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
   return (
@@ -33,9 +34,9 @@ export default function TaskColumn({ status, tasks, onDelete, children }: TaskCo
     >
       {/* Column header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs">{config.emoji}</span>
-          <span className="text-[11px] font-semibold tracking-wider uppercase" style={{ color: config.color }}>
+        <div className="flex items-center gap-2" style={{ color: config.color }}>
+          {config.icon}
+          <span className="text-[11px] font-semibold tracking-wider uppercase">
             {config.label}
           </span>
         </div>

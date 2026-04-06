@@ -25,7 +25,7 @@ export async function GET() {
       role: row.role,
       model: row.model,
       room: row.room,
-      emoji: (staticAgent as { emoji?: string }).emoji || '🤖',
+      icon: (staticAgent as { icon?: string }).icon || 'Bot',
       status: row.status,
       current_task: row.current_task,
       last_active: row.last_active,

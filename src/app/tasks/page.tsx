@@ -14,7 +14,7 @@ export default function TasksPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="text-white/30 hover:text-white/60 transition-colors p-1"
+            className="text-white/30 hover:text-white/60 transition-colors p-2.5"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

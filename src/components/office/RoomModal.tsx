@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
+import { Icon } from '@/lib/icons'
 import type { Agent, Room } from '@/types'
 
 interface RoomModalProps {
@@ -48,7 +49,7 @@ export default function RoomModal({ room, agents, onClose, onAgentClick }: RoomM
             {/* Header */}
             <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{room.emoji}</span>
+                <Icon name={room.icon} size={24} color={room.color} />
                 <div>
                   <h2 className="text-lg font-semibold">{room.name}</h2>
                   <p className="text-xs text-white/40">{activeCount} of {agents.length} agents active</p>
@@ -56,7 +57,7 @@ export default function RoomModal({ room, agents, onClose, onAgentClick }: RoomM
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/10 transition-all"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/10 transition-all"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -70,13 +71,13 @@ export default function RoomModal({ room, agents, onClose, onAgentClick }: RoomM
               style={{
                 background: room.bg,
                 border: '1px solid rgba(255,255,255,0.06)',
-                minHeight: '300px',
-                padding: '32px',
+                minHeight: '200px',
+                padding: '16px',
               }}
             >
               <div
-                className="grid gap-8 justify-items-center"
-                style={{ gridTemplateColumns: `repeat(${Math.min(agents.length, 4)}, 1fr)` }}
+                className="grid gap-6 sm:gap-8 justify-items-center"
+                style={{ gridTemplateColumns: `repeat(${Math.min(agents.length, 2)}, 1fr)` }}
               >
                 {agents.map(agent => {
                   const isWorking = agent.status === 'working'
@@ -100,7 +101,7 @@ export default function RoomModal({ room, agents, onClose, onAgentClick }: RoomM
                           animation: isWorking ? 'float 2s ease-in-out infinite' : undefined,
                         }}
                       >
-                        {agent.emoji}
+                        <Icon name={agent.icon} size={24} color={room.color} />
                         <div
                           className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2"
                           style={{

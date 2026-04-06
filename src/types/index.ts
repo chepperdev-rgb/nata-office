@@ -6,7 +6,7 @@ export interface Agent {
   role: string
   model: string
   room: string
-  emoji: string
+  icon: string
   status?: AgentStatus
   current_task?: string | null
   last_active?: string | null
@@ -17,7 +17,7 @@ export interface Room {
   name: string
   color: string
   bg: string
-  emoji: string
+  icon: string
 }
 
 export interface SystemMetrics {
