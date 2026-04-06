@@ -5,10 +5,107 @@ import Link from 'next/link'
 
 const TERMINAL_WS_URL = process.env.NEXT_PUBLIC_TERMINAL_WS_URL || ''
 const TERMINAL_TOKEN = process.env.NEXT_PUBLIC_TERMINAL_TOKEN || 'nataly-terminal-2026'
+const TERMINAL_PIN = process.env.NEXT_PUBLIC_TERMINAL_PIN || '1991'
 
 const RECONNECT_DELAYS = [500, 1000, 2000, 4000, 8000, 15000] // exponential backoff
 
+function PinGate({ onUnlock }: { onUnlock: () => void }) {
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState(false)
+  const [shake, setShake] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  const handleSubmit = () => {
+    if (pin === TERMINAL_PIN) {
+      sessionStorage.setItem('terminal-pin-ok', '1')
+      onUnlock()
+    } else {
+      setError(true)
+      setShake(true)
+      setPin('')
+      setTimeout(() => setShake(false), 500)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#0a0a0a' }}>
+      <div className={`flex flex-col items-center gap-6 ${shake ? 'animate-shake' : ''}`}>
+        <div className="text-[11px] font-mono tracking-[0.3em] text-white/20 uppercase">Terminal Access</div>
+        <div className="flex gap-3">
+          {[0, 1, 2, 3].map(i => (
+            <div
+              key={i}
+              className="w-3 h-3 rounded-full border transition-all duration-200"
+              style={{
+                borderColor: error ? '#f44747' : pin.length > i ? '#6366f1' : 'rgba(255,255,255,0.15)',
+                background: pin.length > i ? '#6366f1' : 'transparent',
+              }}
+            />
+          ))}
+        </div>
+        <input
+          ref={inputRef}
+          type="password"
+          inputMode="numeric"
+          maxLength={4}
+          value={pin}
+          onChange={e => { setError(false); setPin(e.target.value.replace(/\D/g, '')) }}
+          onKeyDown={e => { if (e.key === 'Enter') handleSubmit() }}
+          className="w-0 h-0 opacity-0 absolute"
+          autoFocus
+        />
+        {/* Visible tap area for mobile */}
+        <div
+          className="flex gap-2 flex-wrap justify-center max-w-[220px]"
+          style={{ marginTop: 8 }}
+        >
+          {[1,2,3,4,5,6,7,8,9,0].map(n => (
+            <button
+              key={n}
+              onClick={() => {
+                setError(false)
+                const next = (pin + n).slice(0, 4)
+                setPin(next)
+                if (next.length === 4) {
+                  setTimeout(() => {
+                    if (next === TERMINAL_PIN) {
+                      sessionStorage.setItem('terminal-pin-ok', '1')
+                      onUnlock()
+                    } else {
+                      setError(true)
+                      setShake(true)
+                      setPin('')
+                      setTimeout(() => setShake(false), 500)
+                    }
+                  }, 150)
+                }
+              }}
+              className="w-14 h-14 rounded-xl font-mono text-lg text-white/60 hover:text-white hover:bg-white/10 transition-all border border-white/8 active:scale-95"
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        {error && (
+          <div className="text-[10px] font-mono text-red-400/70">Wrong PIN</div>
+        )}
+      </div>
+      <style jsx>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-8px); }
+          40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+      `}</style>
+    </div>
+  )
+}
+
 export default function TerminalPage() {
+  const [unlocked, setUnlocked] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<import('@xterm/xterm').Terminal | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
@@ -22,6 +119,11 @@ export default function TerminalPage() {
   const [reconnecting, setReconnecting] = useState(false)
   const [error, setError] = useState('')
   const [profile, setProfile] = useState<string | null>(null)
+
+  // Check if already unlocked this session
+  useEffect(() => {
+    if (sessionStorage.getItem('terminal-pin-ok') === '1') setUnlocked(true)
+  }, [])
 
   // Read profile from URL and restore session ID
   useEffect(() => {
@@ -296,6 +398,8 @@ export default function TerminalPage() {
     }
     handleReconnect()
   }, [handleReconnect])
+
+  if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />
 
   return (
     <div className="fixed inset-0 flex flex-col" style={{ background: '#0a0a0a' }}>
