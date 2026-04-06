@@ -35,6 +35,19 @@ body {
   overscroll-behavior: contain;
 }
 
+/* ── xterm scrollbar: wider + touchable on mobile ── */
+.xterm .xterm-scrollable-element > .scrollbar.vertical {
+  width: 22px !important;
+  touch-action: none !important;
+  right: 0 !important;
+}
+.xterm .xterm-scrollable-element > .scrollbar.vertical > .slider {
+  width: 16px !important;
+  left: 3px !important;
+  background: rgba(140, 140, 140, 0.45) !important;
+  border-radius: 8px !important;
+}
+
 /* ── Terminal-style Scrollbar ──────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }

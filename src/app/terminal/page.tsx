@@ -270,19 +270,36 @@ export default function TerminalPage() {
     termRef.current = term
     fitRef.current = fitAddon
 
-    // Extend xterm v6 scrollbar: add one screen height of empty space below content.
-    // xterm v6 uses a VS Code-style ScrollableElement that ignores DOM scrollHeight.
-    // Patch setScrollDimensions to inflate scrollHeight by one viewport.
+    // Extend xterm v6 scrollbar: add one screen of empty space below content.
+    // Patch setScrollDimensions to inflate scrollHeight, and patch _sync
+    // to not clamp scrollTop when user scrolls into the extra zone.
     try {
       const vp = (term as any)._core?._viewport
-      const scrollable = vp?._scrollableElement?._scrollable
+      const scrollableEl = vp?._scrollableElement
+      const scrollable = scrollableEl?._scrollable
+      const extraPx = window.innerHeight
+
       if (scrollable) {
-        const orig = scrollable.setScrollDimensions.bind(scrollable)
+        // 1) Inflate scrollHeight so scrollbar shows extra range
+        const origSetDims = scrollable.setScrollDimensions.bind(scrollable)
         scrollable.setScrollDimensions = (dims: any) => {
           if (dims && typeof dims.scrollHeight === 'number') {
-            dims = { ...dims, scrollHeight: dims.scrollHeight + window.innerHeight }
+            dims = { ...dims, scrollHeight: dims.scrollHeight + extraPx }
           }
-          return orig(dims)
+          return origSetDims(dims)
+        }
+
+        // 2) Suppress _sync from resetting scrollTop when in extra zone
+        const origSync = vp._sync?.bind(vp)
+        if (origSync) {
+          vp._sync = () => {
+            const pos = scrollableEl.getScrollPosition()
+            const cellH = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 19
+            const maxContentScroll = (term.buffer.active.baseY || 0) * cellH
+            // If user scrolled past content into extra space, skip _sync reset
+            if (pos.scrollTop > maxContentScroll + cellH) return
+            origSync()
+          }
         }
       }
     } catch { /* xterm internals changed — fail silently */ }
