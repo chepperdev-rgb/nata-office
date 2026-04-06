@@ -52,8 +52,6 @@ function PinGate({ onUnlock }: { onUnlock: () => void }) {
 export default function TerminalPage() {
   const [unlocked, setUnlocked] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const thumbRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<import('@xterm/xterm').Terminal | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const fitRef = useRef<import('@xterm/addon-fit').FitAddon | null>(null)
@@ -272,6 +270,23 @@ export default function TerminalPage() {
     termRef.current = term
     fitRef.current = fitAddon
 
+    // Extend xterm v6 scrollbar: add one screen height of empty space below content.
+    // xterm v6 uses a VS Code-style ScrollableElement that ignores DOM scrollHeight.
+    // Patch setScrollDimensions to inflate scrollHeight by one viewport.
+    try {
+      const vp = (term as any)._core?._viewport
+      const scrollable = vp?._scrollableElement?._scrollable
+      if (scrollable) {
+        const orig = scrollable.setScrollDimensions.bind(scrollable)
+        scrollable.setScrollDimensions = (dims: any) => {
+          if (dims && typeof dims.scrollHeight === 'number') {
+            dims = { ...dims, scrollHeight: dims.scrollHeight + window.innerHeight }
+          }
+          return orig(dims)
+        }
+      }
+    } catch { /* xterm internals changed — fail silently */ }
+
     term.write('\r\n\x1b[38;5;245m  Connecting to Mac Studio...\x1b[0m\r\n')
 
     connectWs()
@@ -335,7 +350,6 @@ export default function TerminalPage() {
       if (!containerRef.current) return
       const h = vv.height - headerH
       containerRef.current.style.height = `${Math.max(h, 150)}px`
-      containerRef.current.style.minHeight = `${Math.max(h, 150)}px`
       if (fitRef.current) {
         fitRef.current.fit()
         const dims = fitRef.current.proposeDimensions()
@@ -343,96 +357,10 @@ export default function TerminalPage() {
           wsRef.current.send(JSON.stringify({ type: 'resize', data: { cols: dims.cols, rows: dims.rows } }))
         }
       }
-      // Scroll xterm to bottom so cursor is visible
       if (termRef.current) termRef.current.scrollToBottom()
-      // Scroll wrapper to top so terminal is fully visible
-      if (wrapperRef.current) wrapperRef.current.scrollTop = 0
     }
     vv.addEventListener('resize', handleVVResize)
     return () => vv.removeEventListener('resize', handleVVResize)
-  }, [])
-
-  // Init thumb after mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const w = wrapperRef.current
-      const t = thumbRef.current
-      if (w && t) {
-        const ratio = w.clientHeight / w.scrollHeight
-        const thumbH = Math.max(ratio * w.clientHeight, 40)
-        t.style.height = `${thumbH}px`
-        t.style.top = '0px'
-        t.style.opacity = '1'
-      }
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Custom scrollbar for wrapper (scroll terminal + spacer)
-  const updateThumb = useCallback(() => {
-    const w = wrapperRef.current
-    const t = thumbRef.current
-    if (!w || !t) return
-    const { scrollTop, scrollHeight, clientHeight } = w
-    if (scrollHeight <= clientHeight) { t.style.opacity = '0'; return }
-    const ratio = clientHeight / scrollHeight
-    const thumbH = Math.max(ratio * clientHeight, 40)
-    const maxTop = clientHeight - thumbH
-    const thumbTop = (scrollTop / (scrollHeight - clientHeight)) * maxTop
-    t.style.height = `${thumbH}px`
-    t.style.top = `${thumbTop}px`
-    t.style.opacity = '1'
-  }, [])
-
-  useEffect(() => {
-    const w = wrapperRef.current
-    if (!w) return
-    const onScroll = () => updateThumb()
-    w.addEventListener('scroll', onScroll, { passive: true })
-    return () => w.removeEventListener('scroll', onScroll)
-  }, [updateThumb])
-
-  // Drag the custom scrollbar thumb
-  useEffect(() => {
-    const track = thumbRef.current?.parentElement
-    if (!track) return
-    let dragging = false
-    let startY = 0
-    let startScrollTop = 0
-
-    const onStart = (e: TouchEvent | PointerEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      dragging = true
-      const y = 'touches' in e ? e.touches[0].clientY : e.clientY
-      startY = y
-      startScrollTop = wrapperRef.current?.scrollTop || 0
-    }
-    const onMove = (e: TouchEvent | PointerEvent) => {
-      if (!dragging || !wrapperRef.current) return
-      e.preventDefault()
-      const y = 'touches' in e ? e.touches[0].clientY : e.clientY
-      const delta = y - startY
-      const w = wrapperRef.current
-      const ratio = (w.scrollHeight - w.clientHeight) / (w.clientHeight - (thumbRef.current?.offsetHeight || 40))
-      w.scrollTop = startScrollTop + delta * ratio
-    }
-    const onEnd = () => { dragging = false }
-
-    track.addEventListener('touchstart', onStart as any, { passive: false })
-    track.addEventListener('pointerdown', onStart as any)
-    window.addEventListener('touchmove', onMove as any, { passive: false })
-    window.addEventListener('pointermove', onMove as any)
-    window.addEventListener('touchend', onEnd)
-    window.addEventListener('pointerup', onEnd)
-    return () => {
-      track.removeEventListener('touchstart', onStart as any)
-      track.removeEventListener('pointerdown', onStart as any)
-      window.removeEventListener('touchmove', onMove as any)
-      window.removeEventListener('pointermove', onMove as any)
-      window.removeEventListener('touchend', onEnd)
-      window.removeEventListener('pointerup', onEnd)
-    }
   }, [])
 
   const handleReconnect = useCallback(() => {
@@ -458,7 +386,7 @@ export default function TerminalPage() {
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />
 
   return (
-    <div className="flex flex-col" style={{ background: '#0a0a0a', height: '100dvh', overflow: 'hidden' }}>
+    <div className="flex flex-col" style={{ background: '#0a0a0a', minHeight: '200dvh' }}>
       {/* Header bar */}
       <div
         className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 shrink-0"
@@ -532,53 +460,15 @@ export default function TerminalPage() {
         </div>
       </div>
 
-      {/* Terminal scroll wrapper */}
+      {/* Terminal */}
       <div
-        ref={wrapperRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          WebkitOverflowScrolling: 'touch',
-          position: 'relative',
-          scrollbarWidth: 'none',
-        }}
-        className="[&::-webkit-scrollbar]:hidden"
-      >
-        <div
-          ref={containerRef}
-          style={{ height: 'calc(100dvh - 45px)', minHeight: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px' }}
-        />
-        {/* Black space below terminal — one full iPhone screen */}
-        <div style={{ height: '100dvh', background: '#0a0a0a', pointerEvents: 'none' }} />
-      </div>
+        ref={containerRef}
+        className="overflow-hidden"
+        style={{ height: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px', touchAction: 'pan-y' }}
+      />
 
-      {/* Custom scrollbar track — right edge */}
-      <div
-        style={{
-          position: 'fixed',
-          right: 2,
-          top: 50,
-          bottom: 6,
-          width: 10,
-          zIndex: 20,
-          borderRadius: 5,
-        }}
-      >
-        <div
-          ref={thumbRef}
-          style={{
-            position: 'absolute',
-            right: 0,
-            width: 6,
-            borderRadius: 3,
-            background: 'rgba(99, 102, 241, 0.35)',
-            opacity: 0,
-            transition: 'opacity 0.15s',
-            minHeight: 40,
-          }}
-        />
-      </div>
+      {/* Scroll spacer — один экран пустоты снизу для удобного скролла на iPhone */}
+      <div style={{ height: '100dvh', background: '#0a0a0a', flexShrink: 0 }} />
     </div>
   )
 }

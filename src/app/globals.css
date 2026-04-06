@@ -28,15 +28,23 @@ body {
   overflow-x: hidden;
 }
 
+/* ── xterm mobile touch scroll fix ────────────── */
+.xterm .xterm-viewport {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 /* ── Terminal-style Scrollbar ──────────────────── */
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
-  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 3px;
+  border: 1px solid rgba(99, 102, 241, 0.1);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.35);
 }
 
 /* ── Pixel Character Animations ─────────────────── */
