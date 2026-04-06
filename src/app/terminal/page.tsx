@@ -347,7 +347,7 @@ export default function TerminalPage() {
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />
 
   return (
-    <div className="flex flex-col" style={{ background: '#0a0a0a' }}>
+    <div className="flex flex-col" style={{ background: '#0a0a0a', minHeight: '200dvh' }}>
       {/* Header bar */}
       <div
         className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 shrink-0"
@@ -428,8 +428,8 @@ export default function TerminalPage() {
         style={{ height: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px', touchAction: 'pan-y' }}
       />
 
-      {/* Scroll spacer — полэкрана пустоты снизу для удобного чтения */}
-      <div style={{ height: '50vh', background: '#0a0a0a', flexShrink: 0 }} />
+      {/* Scroll spacer — один экран пустоты снизу для удобного скролла на iPhone */}
+      <div style={{ height: '100dvh', background: '#0a0a0a', flexShrink: 0 }} />
     </div>
   )
 }
