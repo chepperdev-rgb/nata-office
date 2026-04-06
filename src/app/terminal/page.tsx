@@ -267,19 +267,6 @@ export default function TerminalPage() {
     term.open(containerRef.current)
     fitAddon.fit()
 
-    // Insert spacer inside xterm viewport so scrollbar can scroll past text
-    // into empty black space (one full screen height)
-    const viewport = containerRef.current?.querySelector('.xterm-viewport')
-    if (viewport) {
-      const spacer = document.createElement('div')
-      spacer.style.height = '100vh'
-      spacer.style.minHeight = '100vh'
-      spacer.style.pointerEvents = 'none'
-      spacer.style.flexShrink = '0'
-      spacer.className = 'xterm-scroll-spacer'
-      viewport.appendChild(spacer)
-    }
-
     termRef.current = term
     fitRef.current = fitAddon
 

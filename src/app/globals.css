@@ -32,33 +32,18 @@ body {
 .xterm .xterm-viewport {
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.3) #0a0a0a;
-}
-.xterm .xterm-viewport::-webkit-scrollbar { width: 6px; }
-.xterm .xterm-viewport::-webkit-scrollbar-track { background: #0a0a0a; }
-.xterm .xterm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
-  border-radius: 3px;
-}
-.xterm .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
-}
-/* Extra space below terminal text for comfortable scrolling */
-.xterm-scroll-spacer {
-  background: #0a0a0a;
+  padding-bottom: 100vh !important;
 }
 
 /* ── Terminal-style Scrollbar ──────────────────── */
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.2);
-  border-radius: 3px;
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.5);
 }
 
 /* ── Pixel Character Animations ─────────────────── */
