@@ -28,19 +28,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ── xterm mobile touch scroll fix ────────────── */
-.xterm .xterm-viewport {
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  background: #0a0a0a !important;
-}
-/* Extra black space below terminal text — one full iPhone screen.
-   xterm only sets .height on scroll-area, so margin-bottom persists
-   and extends the scrollable range of the viewport. */
-.xterm .xterm-scroll-area {
-  margin-bottom: 100vh !important;
-}
-
 /* ── Terminal-style Scrollbar ──────────────────── */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }
