@@ -347,7 +347,7 @@ export default function TerminalPage() {
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />
 
   return (
-    <div className="flex flex-col" style={{ background: '#0a0a0a', minHeight: '200dvh' }}>
+    <div className="flex flex-col" style={{ background: '#0a0a0a', height: '100dvh', overflowY: 'auto', overflowX: 'hidden' }}>
       {/* Header bar */}
       <div
         className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 shrink-0"
@@ -424,12 +424,14 @@ export default function TerminalPage() {
       {/* Terminal */}
       <div
         ref={containerRef}
-        className="overflow-hidden"
-        style={{ height: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px', touchAction: 'pan-y' }}
+        className="overflow-x-hidden"
+        style={{ height: 'calc(100dvh - 45px)', minHeight: 'calc(100dvh - 45px)', padding: '8px 12px 12px 12px', touchAction: 'pan-y', flexShrink: 0 }}
       />
 
-      {/* Scroll spacer — один экран пустоты снизу для удобного скролла на iPhone */}
-      <div style={{ height: '100dvh', background: '#0a0a0a', flexShrink: 0 }} />
+      {/* Scroll spacer — один экран пустоты снизу для удобного скролла на iPhone.
+          Этот div виден только когда пользователь скроллит страницу ЗА пределы терминала.
+          Для работы нужно чтобы body не блокировал overflow-y. */}
+      <div aria-hidden style={{ height: '100dvh', minHeight: '100dvh', background: '#0a0a0a', flexShrink: 0, pointerEvents: 'none' }} />
     </div>
   )
 }
