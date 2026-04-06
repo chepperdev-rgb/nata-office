@@ -394,25 +394,36 @@ export default function TerminalPage() {
   const handleCopy = useCallback(async () => {
     const term = termRef.current
     if (!term) return
-    const sel = term.getSelection()
-    if (!sel) return
+
+    // If user has a selection, copy that. Otherwise copy all visible lines.
+    let text = term.getSelection()
+    if (!text) {
+      const buf = term.buffer.active
+      const lines: string[] = []
+      for (let i = 0; i < term.rows; i++) {
+        const line = buf.getLine(buf.viewportY + i)
+        if (line) lines.push(line.translateToString(true))
+      }
+      // Trim trailing empty lines
+      while (lines.length && !lines[lines.length - 1].trim()) lines.pop()
+      text = lines.join('\n')
+    }
+    if (!text) return
+
     try {
-      await navigator.clipboard.writeText(sel)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
+      await navigator.clipboard.writeText(text)
     } catch {
-      // Fallback for older iOS
       const ta = document.createElement('textarea')
-      ta.value = sel
+      ta.value = text
       ta.style.position = 'fixed'
       ta.style.opacity = '0'
       document.body.appendChild(ta)
       ta.select()
       document.execCommand('copy')
       document.body.removeChild(ta)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }, [])
 
   const handlePaste = useCallback(async () => {
