@@ -389,6 +389,46 @@ export default function TerminalPage() {
     connectWs()
   }, [connectWs])
 
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(async () => {
+    const term = termRef.current
+    if (!term) return
+    const sel = term.getSelection()
+    if (!sel) return
+    try {
+      await navigator.clipboard.writeText(sel)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Fallback for older iOS
+      const ta = document.createElement('textarea')
+      ta.value = sel
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    }
+  }, [])
+
+  const handlePaste = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text && wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'input', data: text }))
+      }
+    } catch {
+      // Clipboard API denied — show info
+      if (termRef.current) {
+        termRef.current.write('\r\n\x1b[38;5;245m  Paste: allow clipboard access in browser settings\x1b[0m\r\n')
+      }
+    }
+  }, [])
+
   const handleNewSession = useCallback(() => {
     sessionIdRef.current = null
     const nKey = profile ? `terminal-session-id-${profile}` : 'terminal-session-id'
@@ -461,6 +501,24 @@ export default function TerminalPage() {
           >
             {connected ? 'LIVE' : reconnecting ? 'RECONNECTING' : 'OFFLINE'}
           </span>
+          <button
+            onClick={handleCopy}
+            className={`text-[10px] font-mono px-3 py-2 rounded border transition-all ${
+              copied
+                ? 'border-green-400/30 text-green-400 bg-green-400/10'
+                : 'border-white/10 hover:border-white/30 text-white/40 hover:text-white/70'
+            }`}
+            title="Copy selection"
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+          <button
+            onClick={handlePaste}
+            className="text-[10px] font-mono px-3 py-2 rounded border border-white/10 hover:border-white/30 text-white/40 hover:text-white/70 transition-all"
+            title="Paste from clipboard"
+          >
+            Paste
+          </button>
           <button
             onClick={handleReconnect}
             className="text-[10px] font-mono px-3 py-2 rounded border border-white/10 hover:border-white/30 text-white/40 hover:text-white/70 transition-all"
